@@ -320,7 +320,7 @@ def populate_birthdays_calendar(birthdays):
     c = Calendar()
     c.scale = 'GREGORIAN'
     c.method = 'PUBLISH'
-    c.creator = 'fb2ics - mobeigi.com'
+    c.creator = 'fb2ics - https://git.io/fjMwr'
     c._unused.append(ics.parse.ContentLine(name='X-WR-CALNAME', params={}, value='Friends\' Birthdays'))
     c._unused.append(ics.parse.ContentLine(name='X-PUBLISHED-TTL', params={}, value='PT12H'))
     c._unused.append(ics.parse.ContentLine(name='X-ORIGINAL-URL', params={}, value='/events/birthdays/'))
