@@ -1,7 +1,11 @@
 ############### #!/usr/bin/env python # TODO
 
-""" Facebook Birthdays to Calendar Parser """
+""" 
+    fb2ics 
+    Created by: mobeigi (mobeigi.com)
+"""
 
+import os
 import sys
 import re
 import mechanicalsoup
@@ -12,6 +16,14 @@ import pytz
 import json
 import ics
 from ics import Calendar, Event
+import configparser
+
+from oauth2client import file, client, tools
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+from googleapiclient.errors import HttpError
+from httplib2 import Http
+from io import BytesIO
 
 # Classes
 class Birthday:
@@ -29,15 +41,23 @@ class Birthday:
 
 # Entry point
 def main():
-    EMAIL = 'REDACTED'
-    PASSWORD = 'REDACTED'
+
+    # Set CWD to script directory
+    os.chdir(sys.path[0])
+
+    # Read config
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    # Authenticate with Google API early
+    service = google_api_authenticate()
 
     # Init browser
     browser = mechanicalsoup.Browser()
     init_browser(browser)
 
     # Attempt login
-    response = login(browser, EMAIL, PASSWORD)
+    response = login(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
     
     if response.status_code != 200:
         sys.exit('Failed to login.')
@@ -48,9 +68,30 @@ def main():
     # Create birthdays ICS file
     c = populate_birthdays_calendar(birthdays)
 
-    # Write to file stripping extra new lines away
-    with open('birthday.ics', 'w') as f:
-        f.writelines([line.rstrip('\n') for line in c])
+    # Remove blank lines
+    ics_str = ''.join([line.rstrip('\n') for line in c])
+
+    # Upload to drive
+    metadata = {'name': config['DRIVE']['ICS_FILE_NAME']}
+    UPLOAD_RETRY_ATTEMPTS = 3
+
+    for attempt in range(UPLOAD_RETRY_ATTEMPTS):
+        try:
+            updated_file = upload_and_replace_file(service, config['DRIVE']['DRIVE_FILE_ID'], metadata, bytearray(ics_str, 'utf-8')) # Pass payload as bytes
+            config.set('DRIVE', 'DRIVE_FILE_ID', updated_file['id'])
+        except HttpError as err:
+            if err.resp.status == 404: # file not found
+                if config['DRIVE']['DRIVE_FILE_ID']:
+                    config.set('DRIVE', 'DRIVE_FILE_ID', '') # reset stored file_id
+                    print(f"HttpError 404 error. File not found: {config['DRIVE']['DRIVE_FILE_ID']}. Resetting stored file_id in config and trying again. Attempt: {attempt+1}", file=sys.stderr)
+                    continue
+                else:
+                    print(f'HttpError 404 error. Unexpected error.', file=sys.stderr)
+    
+    # Update config file with updated file id for subsequent runs
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+
 
 def init_browser(browser):
     """ Initialize browser as needed """
@@ -65,6 +106,35 @@ def login(browser, email, password):
     login_form.find('input', {'id': 'email'})['value'] = email
     login_form.find('input', {'id': 'pass'})['value'] = password
     return browser.submit(login_form, login_page.url)
+
+def google_api_authenticate():
+    """ Authenticate with google apis """
+    SCOPES = 'https://www.googleapis.com/auth/drive'
+    store = file.Storage('token.json')
+    creds = store.get()
+    if not creds or creds.invalid:
+        flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
+        creds = tools.run_flow(flow, store)
+    service = build('drive', 'v3', http=creds.authorize(Http()))
+    return service
+
+def upload_and_replace_file(service, file_id, metadata, payload):
+    mine_type = 'text/calendar'
+    text_stream = BytesIO(payload) 
+    media_body = MediaIoBaseUpload(text_stream, mimetype=mine_type, chunksize=1024*1024, resumable=True)
+
+    # If file id is provided, update the file, otherwise we'll create a new file
+    if file_id:
+        updated_file = service.files().update(fileId=file_id, body=metadata, media_body=media_body).execute()
+    else:
+        updated_file = service.files().create(body=metadata, media_body=media_body).execute()
+
+        # Need publically accessible ics file so Google calendar can read it
+        permission = { "role": 'reader', 
+                        "type": 'anyone'}
+        service.permissions().create(fileId=updated_file['id'], body=permission).execute()
+
+    return updated_file
 
 __cached_async_token = None
 def get_async_token(browser):
@@ -100,8 +170,6 @@ def get_async_birthdays(browser):
 
     birthdays = []
 
-    url = urllib.parse.urlparse(FACEBOOK_BIRTHDAY_ASYNC_ENDPOINT)
-
     next_12_months_epoch_timestamps = get_next_12_month_epoch_timestamps()
 
     for epoch_timestamp in next_12_months_epoch_timestamps:
@@ -131,7 +199,7 @@ def get_next_12_month_epoch_timestamps():
     cur_date = datetime.now()
 
     # Loop for next 12 months
-    for _ in range(0, 12):
+    for _ in range(12):
         # Reset day to 1 and time to 00:00:01
         cur_date = cur_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
@@ -142,7 +210,7 @@ def get_next_12_month_epoch_timestamps():
         # Move cur_date to 1st of next month
         cur_date = cur_date + relativedelta(months=1)
     
-    return epoch_timestamps[0:1] # TODO
+    return epoch_timestamps[0:1]
 
 def parse_birthday_async_output(browser, text):
     """ Parsed Birthday Async output text and returns list of Birthday objects """
@@ -200,8 +268,9 @@ def get_days_offset_dict():
     __offset_dict = {}
     cur_date = datetime.now()
     
-    # TODO: Check what this shows for today, check when last day cutoff is
-    for i in range(0, 8):
+    # Iterate through following days
+    # TODO: Check if current day is supported and how far this range goes
+    for i in range(8):
         __offset_dict[cur_date.strftime("%A")] = i
         cur_date = cur_date + relativedelta(days=1)
 
@@ -235,8 +304,6 @@ def get_entity_id_from_vanity_name(browser, vanity_name):
             # Match found!
             return entry['uid']
 
-    # TODO: Fallback to scraping users profile page directly here
-
     sys.exit(f'Failed to get entity id for vanity_name. Params: {query_params}')
     return None
 
@@ -253,7 +320,7 @@ def populate_birthdays_calendar(birthdays):
     c = Calendar()
     c.scale = 'GREGORIAN'
     c.method = 'PUBLISH'
-    c.creator = '-//Facebook//NONSGML Facebook Events V1.0//EN' # TODO: Give myself some credit? 
+    c.creator = 'fb2ics - mobeigi.com'
     c._unused.append(ics.parse.ContentLine(name='X-WR-CALNAME', params={}, value='Friends\' Birthdays'))
     c._unused.append(ics.parse.ContentLine(name='X-PUBLISHED-TTL', params={}, value='PT12H'))
     c._unused.append(ics.parse.ContentLine(name='X-ORIGINAL-URL', params={}, value='/events/birthdays/'))
@@ -281,3 +348,5 @@ def populate_birthdays_calendar(birthdays):
 
 if __name__ == "__main__":
     main()
+
+__version__ = '1.0.0'
