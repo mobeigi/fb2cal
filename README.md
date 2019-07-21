@@ -1,17 +1,17 @@
 <p align="center">
 <img src="https://i.imgur.com/DdzpT8O.png" height="96px" width="96px"/>
 <br/>
-<h3 align="center">fb2ics</h3>
+<h3 align="center">fb2cal</h3>
 <p align="center">Facebook Birthday Events to ICS file converter</p>
 <h2></h2>
 </p>
 <br />
 
 <p align="center">
-<a href="../../releases"><img src="https://img.shields.io/github/release/mobeigi/fb2ics.svg?style=flat-square" /></a>
-<a href="../../issues"><img src="https://img.shields.io/github/issues/mobeigi/fb2ics.svg?style=flat-square" /></a>
-<a href="../../pulls"><img src="https://img.shields.io/github/issues-pr/mobeigi/fb2ics.svg?style=flat-square" /></a> 
-<a href="LICENSE.md"><img src="https://img.shields.io/github/license/mobeigi/fb2ics.svg?style=flat-square" /></a>
+<a href="../../releases"><img src="https://img.shields.io/github/release/mobeigi/fb2cal.svg?style=flat-square" /></a>
+<a href="../../issues"><img src="https://img.shields.io/github/issues/mobeigi/fb2cal.svg?style=flat-square" /></a>
+<a href="../../pulls"><img src="https://img.shields.io/github/issues-pr/mobeigi/fb2cal.svg?style=flat-square" /></a> 
+<a href="LICENSE.md"><img src="https://img.shields.io/github/license/mobeigi/fb2cal.svg?style=flat-square" /></a>
 </p>
 
 ## Description
@@ -32,7 +32,7 @@ This tool **does not** use the Facebook API.
 
 ## Instructions
 1. Clone repo  
-`git clone git@github.com:mobeigi/fb2ics.git`
+`git clone git@github.com:mobeigi/fb2cal.git`
 2. Create a Google Drive API credentials
    1. Visit the Google Drive APIs page: https://console.developers.google.com/apis/api/drive.googleapis.com/overview
    2. Create a new project (if you don't already have one)
@@ -43,7 +43,7 @@ This tool **does not** use the Facebook API.
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
 4. Open `src/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive
 5. Run script manually once and authenticate with Google to allow Drive access  
-`python ./fb2ics.py`
+`python ./fb2cal.py`
 6. Check Google Drive to ensure your ics file was made. 
 7. Setup cron jobs/Task Scheduler/Automator to repeatly run python script. It is recommended to run the script **once every 24 hours**.
 8. Use the following link to import your ics into Calendar applications (i.e. Google Calendar):  
