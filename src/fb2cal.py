@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """ 
-    fb2ics 
+    fb2cal
     Created by: mobeigi (mobeigi.com)
 """
 
@@ -266,7 +266,7 @@ def get_days_offset_dict():
         return __offset_dict
 
     __offset_dict = {}
-
+    
     # todays birthdays will be shown normally (as date) so we can skip today
     cur_date = datetime.now() + relativedelta(days=1)
     
@@ -321,8 +321,8 @@ def populate_birthdays_calendar(birthdays):
     c = Calendar()
     c.scale = 'GREGORIAN'
     c.method = 'PUBLISH'
-    c.creator = 'fb2ics - https://git.io/fjMwr'
-    c._unused.append(ics.parse.ContentLine(name='X-WR-CALNAME', params={}, value='Friends\' Birthdays'))
+    c.creator = 'fb2cal - https://git.io/fjMwr'
+    c._unused.append(ics.parse.ContentLine(name='X-WR-CALNAME', params={}, value='Facebook Birthdays (fb2cal)'))
     c._unused.append(ics.parse.ContentLine(name='X-PUBLISHED-TTL', params={}, value='PT12H'))
     c._unused.append(ics.parse.ContentLine(name='X-ORIGINAL-URL', params={}, value='/events/birthdays/'))
 
