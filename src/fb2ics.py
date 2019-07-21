@@ -1,4 +1,4 @@
-############### #!/usr/bin/env python # TODO
+#!/usr/bin/env python
 
 """ 
     fb2ics 
@@ -210,7 +210,7 @@ def get_next_12_month_epoch_timestamps():
         # Move cur_date to 1st of next month
         cur_date = cur_date + relativedelta(months=1)
     
-    return epoch_timestamps[0:1]
+    return epoch_timestamps
 
 def parse_birthday_async_output(browser, text):
     """ Parsed Birthday Async output text and returns list of Birthday objects """
