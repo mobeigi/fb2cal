@@ -266,11 +266,12 @@ def get_days_offset_dict():
         return __offset_dict
 
     __offset_dict = {}
-    cur_date = datetime.now()
+
+    # todays birthdays will be shown normally (as date) so we can skip today
+    cur_date = datetime.now() + relativedelta(days=1)
     
-    # Iterate through following days
-    # TODO: Check if current day is supported and how far this range goes
-    for i in range(8):
+    # Iterate through the following 7 days
+    for i in range(1, 8):
         __offset_dict[cur_date.strftime("%A")] = i
         cur_date = cur_date + relativedelta(days=1)
 
