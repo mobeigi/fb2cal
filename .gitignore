@@ -1,0 +1,6 @@
+# Avoid committing config file
+src/config.ini
+
+# Avoid committing credentials
+src/credentials.json
+src/token.json
