@@ -42,11 +42,14 @@ This tool **does not** use the Facebook API.
    5. Download credentials JSON file
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
 4. Open `src/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive
-5. Run script manually once and authenticate with Google to allow Drive access  
+5. Install python modules if required  
+`pip install mechanicalsoup`  
+`pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib`
+6. Run script manually once and authenticate with Google to allow Drive access  
 `python ./fb2cal.py`
-6. Check Google Drive to ensure your ics file was made. 
-7. Setup cron jobs/Task Scheduler/Automator to repeatly run python script. It is recommended to run the script **once every 24 hours**.
-8. Use the following link to import your ics into Calendar applications (i.e. Google Calendar):  
+7. Check Google Drive to ensure your ics file was made. 
+8. Setup cron jobs/Task Scheduler/Automator to repeatly run python script. It is recommended to run the script **once every 24 hours**.
+9. Use the following link to import your ics into Calendar applications (i.e. Google Calendar):  
 `http://drive.google.com/uc?export=download&id=DRIVE_FILE_ID`. Replace **DRIVE_FILE_ID** with the autopopulated value found in your `src/config.ini` file.
 
 ## Contributions
