@@ -60,7 +60,11 @@ def main():
     response = login(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
     
     if response.status_code != 200:
-        sys.exit('Failed to login.')
+        sys.exit('Failed to login to Facebook.')
+
+    # Check to see if we hit Facebook login checkpoint
+    if 'action="/checkpoint/?next' in response.text:
+        sys.exit('Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
 
     # Get birthday objects for all friends via async endpoint
     birthdays = get_async_birthdays(browser)
