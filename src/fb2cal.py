@@ -63,7 +63,7 @@ def main():
         sys.exit('Failed to login to Facebook.')
 
     # Check to see if we hit Facebook login checkpoint
-    if 'action="/checkpoint/?next' in response.text:
+    if 'action="/checkpoint/?next"' in response.text:
         sys.exit('Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
 
     # Get birthday objects for all friends via async endpoint
