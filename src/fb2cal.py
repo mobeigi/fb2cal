@@ -53,21 +53,28 @@ def main():
     service = google_api_authenticate()
 
     # Init browser
-    browser = mechanicalsoup.Browser()
+    browser = mechanicalsoup.StatefulBrowser()
     init_browser(browser)
 
     # Attempt login
     response = login(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
-    
-    if response.status_code != 200:
-        sys.exit('Failed to login to Facebook.')
 
-    # Check to see if we hit Facebook login checkpoint
+    if response.status_code != 200:
+        sys.exit(f'Failed to authenticate with Facebook. Status code: {response.status_code}.')
+
+    # Check to see if login failed
+    if '<link rel="canonical" href="https://www.facebook.com/login/"' in response.text:
+        sys.exit('Failed to authenticate with Facebook. Please check provided email/password.')
+
+    # Check to see if we hit Facebook security checkpoint
     if 'action="/checkpoint/?next"' in response.text:
         sys.exit('Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
 
     # Get birthday objects for all friends via async endpoint
     birthdays = get_async_birthdays(browser)
+
+    if len(birthdays) == 0:
+        sys.exit('Birthday list is empty. Failed to fetch any birthdays. Aborting.')
 
     # Create birthdays ICS file
     c = populate_birthdays_calendar(birthdays)
@@ -156,7 +163,7 @@ def get_async_token(browser):
     birthday_event_page = browser.get(FACEBOOK_BIRTHDAY_EVENT_PAGE_URL)
     
     if birthday_event_page.status_code != 200:
-        sys.exit('Failed to retreive birthday event page.')
+        sys.exit(f'Failed to retreive birthday event page. Status code: {response.status_code}.')
 
     matches = regexp.search(birthday_event_page.text)
 
@@ -185,7 +192,7 @@ def get_async_birthdays(browser):
         response = browser.get(FACEBOOK_BIRTHDAY_ASYNC_ENDPOINT + urllib.parse.urlencode(query_params))
         
         if response.status_code != 200:
-            sys.exit(f'Failed to get async birthday response. Params: {query_params}')
+            sys.exit(f'Failed to get async birthday response. Params: {query_params}. Status code: {response.status_code}.')
         
         birthdays.extend(parse_birthday_async_output(browser, response.text))
 
@@ -294,7 +301,7 @@ def get_entity_id_from_vanity_name(browser, vanity_name):
     response = browser.get(COMPOSER_QUERY_ASYNC_ENDPOINT + urllib.parse.urlencode(query_params))
     
     if response.status_code != 200:
-        sys.exit(f'Failed to get async composer query response. Params: {query_params}')
+        sys.exit(f'Failed to get async composer query response. Params: {query_params}. Status code: {response.status_code}.')
 
     response = strip_ajax_response_prefix(response.text)
     json_response = json.loads(response)
