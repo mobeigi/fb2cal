@@ -63,11 +63,11 @@ def main():
         sys.exit(f'Failed to authenticate with Facebook. Status code: {response.status_code}.')
 
     # Check to see if login failed
-    if '<link rel="canonical" href="https://www.facebook.com/login/"' in response.text:
+    if response.soup.find('link', {'rel': 'canonical', 'href': 'https://www.facebook.com/login/'}):
         sys.exit('Failed to authenticate with Facebook. Please check provided email/password.')
 
     # Check to see if we hit Facebook security checkpoint
-    if 'action="/checkpoint/?next"' in response.text:
+    if response.soup.find('button', {'id': 'checkpointSubmitButton'}):
         sys.exit('Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
 
     # Get birthday objects for all friends via async endpoint
