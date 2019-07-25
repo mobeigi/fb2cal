@@ -26,7 +26,7 @@ After gathering a list of birthdays for all the users friends for a full year, i
 This tool **does not** use the Facebook API.
 
 ## Requirements
-* python3 (and all required python3 modules)
+* python3.6+ (and all required python3 modules)
 * Scheduler tool to automatically run script periodically
 * Google Drive API access
 
@@ -43,7 +43,7 @@ This tool **does not** use the Facebook API.
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
 4. Open `src/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive
 5. Install python modules if required  
-`pip install mechanicalsoup`  
+`pip install --upgrade mechanicalsoup ics`  
 `pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib`
 6. Run script manually once and authenticate with Google to allow Drive access  
 `python ./fb2cal.py`
