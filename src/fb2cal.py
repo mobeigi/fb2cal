@@ -349,7 +349,7 @@ def populate_birthdays_calendar(birthdays):
         year = cur_date.year if birthday.month >= cur_date.month else (cur_date + relativedelta(years=1)).year
         month = '{:02d}'.format(birthday.month)
         day = '{:02d}'.format(birthday.day)
-        e.begin = f'{year}{month}{day} 00:00:00'
+        e.begin = f'{year}-{month}-{day} 00:00:00'
         e.make_all_day()
         e.duration = timedelta(days=1)
         e._unused.append(ics.parse.ContentLine(name='RRULE', params={}, value='FREQ=YEARLY'))
