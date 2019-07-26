@@ -41,7 +41,7 @@ This tool **does not** use the Facebook API.
    5. Create Credentials (**OAuth client ID**)
    5. Download credentials JSON file
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
-4. Open `src/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive
+4. Rename `src/config-template.ini` to `src/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Initially, the value for the **drive_file_id** field should be empty.
 5. Install required python modules   
 `pip install -r requirements.txt`
 6. Run script manually once and authenticate with Google to allow Drive access  
