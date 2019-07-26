@@ -139,6 +139,11 @@ def login(browser, email, password):
 
 def google_api_authenticate():
     """ Authenticate with google apis """
+
+    # Confirm credentials.json exists
+    if not os.path.isfile('credentials.json'):
+        sys.exit(f'credentials.json file does not exist')
+
     SCOPES = 'https://www.googleapis.com/auth/drive'
     store = file.Storage('token.json')
     creds = store.get()
