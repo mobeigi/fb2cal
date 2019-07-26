@@ -44,10 +44,10 @@ This tool **does not** use the Facebook API.
 4. Rename `src/config-template.ini` to `src/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Initially, the value for the **drive_file_id** field should be empty.
 5. Install required python modules   
 `pip install -r requirements.txt`
-6. Run script manually once and authenticate with Google to allow Drive access  
+6. Run script manually once for testing purposes:
 `python ./fb2cal.py`
 7. Check Google Drive to ensure your ics file was made. 
-8. Setup cron jobs/Task Scheduler/Automator to repeatly run python script. It is recommended to run the script **once every 24 hours**.
+8. Setup cron jobs/Task Scheduler/Automator to repeatly run the script to periodically generate an updated ics file. It is recommended to run the script **once every 24 hours**.
 9. Use the following link to import your ics into Calendar applications (i.e. Google Calendar):  
 `http://drive.google.com/uc?export=download&id=DRIVE_FILE_ID`. Replace **DRIVE_FILE_ID** with the autopopulated value found in your `src/config.ini` file.
 
