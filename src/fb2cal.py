@@ -60,7 +60,13 @@ def main():
 
     # Read config
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    
+    try:
+        dataset = config.read('config.ini')
+        if not dataset:
+            print('config.ini does not exist. Please rename config-template.ini if you have not done so already.')
+    except configparser.Error as e:
+        print(f'ConfigParser error: {e}')
 
     # Authenticate with Google API early
     service = google_api_authenticate()
