@@ -198,6 +198,42 @@ def get_async_token(browser):
     
     return matches[1]
 
+__locale = None
+def get_facebook_locale(browser):
+    """ Returns users Facebook locale """
+
+    global __locale
+    
+    if __locale:
+        return __locale
+
+    FACEBOOK_LOCALE_ENDPOINT = 'https://www.facebook.com/ajax/settings/language/account.php?'
+    FACEBOOK_LOCALE_REGEXP_STRING = r'[a-z]{2}_[A-Z]{2}'
+    regexp = re.compile(FACEBOOK_LOCALE_REGEXP_STRING, re.MULTILINE)
+
+    # Not all fields are required for response to be given, required fields are fb_dtsg_ag and __a
+    query_params = {'fb_dtsg_ag': get_async_token(browser),
+                    '__a': '1'}
+
+    response = browser.get(FACEBOOK_LOCALE_ENDPOINT + urllib.parse.urlencode(query_params))
+    
+    if response.status_code != 200:
+        sys.exit(f'Failed to get Facebook locale. Params: {query_params}. Status code: {response.status_code}.')
+
+    response = strip_ajax_response_prefix(response.text)
+    json_response = json.loads(response)
+    
+    current_locale = json_response['jsmods']['require'][0][3][1]['currentLocale']
+
+    # Validate locale
+    if not regexp.match(current_locale):
+        sys.exit(f'Invalid Facebook locale fetched: {current_locale}.')
+
+    __locale = current_locale
+
+    return __locale
+
+
 def get_async_birthdays(browser):
     """ Returns list of birthday objects by querying the Facebook birthday async page """
     
@@ -249,47 +285,188 @@ def get_next_12_month_epoch_timestamps():
 
 def parse_birthday_async_output(browser, text):
     """ Parsed Birthday Async output text and returns list of Birthday objects """
-    BIRTHDAY_STRING_REGEXP_STRING = r'class=\\\"_43q7\\\".*?href=\\\"https:\\/\\/www\.facebook\.com\\/(.*?)\\\".*?.*?data-tooltip-content=\\\".*? \((.*?)\)\\\">.*?alt=\\\"(.*?)\\\".*?/>'
+    BIRTHDAY_STRING_REGEXP_STRING = r'class=\"_43q7\".*?href=\"https://www\.facebook\.com/(.*?)\".*?data-tooltip-content=\"(.*?)\">.*?alt=\"(.*?)\".*?/>'
     regexp = re.compile(BIRTHDAY_STRING_REGEXP_STRING, re.MULTILINE)
     
     birthdays = []
-    
-    for vanity_name, birthday_date_str, name in regexp.findall(text):
+
+    # Fetch birthday card html payload
+    response = strip_ajax_response_prefix(text)
+    json_response = json.loads(response)
+    birthday_card_html = json_response['domops'][0][3]['__html']
+    locale = get_facebook_locale(browser)
+
+    for vanity_name, tooltip_content, name in regexp.findall(birthday_card_html):
         # Check to see if user has no custom vanity name in which case we'll just take the id directly
         if vanity_name.startswith('profile.php?id='):
             uid = vanity_name[15:]
         else:
             uid = get_entity_id_from_vanity_name(browser, vanity_name)
         
-        # Parse birthday date string into Day / Month
-        day, month = parse_birthday_day_month(birthday_date_str)
+        # Parse tooltip content into day/month
+        day, month = parse_birthday_day_month(tooltip_content, name, locale)
 
         birthdays.append(Birthday(uid, name, day, month))
 
     return birthdays
 
-def parse_birthday_day_month(birthday_date_str):
-    """ Convert birthday date string to a day and month number. Facebook will use MM/DD format for all birthdays expect those in the following week compared to current date.
+def parse_birthday_day_month(tooltip_content, name, locale):
+    """ Convert the Facebook birthday tooltip content to a day and month number. Facebook will use a tooltip format based on the users Facebook language (locale).
+        The date will be in some date format which reveals the birthday day and birthday month.
+        This is done for all birthdays expect those in the following week relative to the current date.
         Those will instead show day names such as 'Monday', 'Tuesday' etc for the next 7 days. """
+
+    birthday_date_str = tooltip_content
+
+    # List of strings that will be stripped away from tooltip_content
+    # The goal here is to remove all other characters except the birthday day, birthday month and day/month seperator symbol
+    strip_list = [
+        name, # Full name of user which will appear somewhere in the string
+        '(', # Regular left bracket
+        ')', # Regular right bracket 
+        '&#x200f;', # Remove right-to-left mark (RLM)
+        '&#x200e;', # Remove left-to-right mark (LRM)
+        '&#x55d;' # Backtick character name postfix in Armenian
+    ]
     
-    # Attempt regexp match
-    BIRTHDAY_STRING_REGEXP_STRING = r'(\d+)\\/(\d+)'
-    regexp = re.compile(BIRTHDAY_STRING_REGEXP_STRING)
+    for string in strip_list:
+        birthday_date_str = birthday_date_str.replace(string, '')
 
-    matches = regexp.search(birthday_date_str)
+    birthday_date_str = birthday_date_str.strip()
 
-    if matches and len(matches.groups()) == 2:
-        return (int(matches[2]), int(matches[1])) # day, month
+    # Dict with mapping of locale identifier to month/day datetime format 
+    locale_date_format_mapping = {
+        'af_ZA': '%d-%m',
+        'am_ET': '%m/%d',
+        # 'ar_AR': '', # TODO: parse Arabic numeric characters
+        # 'as_IN': '', # TODO: parse Assamese numeric characters
+        'az_AZ': '%d.%m',
+        'be_BY': '%d.%m',
+        'bg_BG': '%d.%m',
+        'bn_IN': '%d/%m',
+        'br_FR': '%d/%m',
+        'bs_BA': '%d.%m.',
+        'ca_ES': '%d/%m',
+        # 'cb_IQ': '', # TODO: parse Arabic numeric characters
+        'co_FR': '%m-%d',
+        'cs_CZ': '%d. %m.',
+        'cx_PH': '%m-%d',
+        'cy_GB': '%d/%m',
+        'da_DK': '%d.%m',
+        'de_DE': '%d.%m.',
+        'el_GR': '%d/%m',
+        'en_GB': '%d/%m',
+        'en_UD': '%m/%d',
+        'en_US': '%m/%d',
+        'eo_EO': '%m-%d',
+        'es_ES': '%d/%m',
+        'es_LA': '%d/%m',
+        'et_EE': '%d.%m',
+        'eu_ES': '%m/%d',
+        # 'fa_IR': '', # TODO: parse Persian numeric characters
+        'ff_NG': '%d/%m',
+        'fi_FI': '%d.%m.',
+        'fo_FO': '%d.%m',
+        'fr_CA': '%m-%d',
+        'fr_FR': '%d/%m',
+        'fy_NL': '%d-%m',
+        'ga_IE': '%d/%m',
+        'gl_ES': '%d/%m',
+        'gn_PY': '%m-%d',
+        'gu_IN': '%d/%m',
+        'ha_NG': '%m/%d',
+        'he_IL': '%d.%m',
+        'hi_IN': '%d/%m',
+        'hr_HR': '%d. %m.',
+        'ht_HT': '%m-%d',
+        'hu_HU': '%m. %d.',
+        'hy_AM': '%d.%m',
+        'id_ID': '%d/%m',
+        'is_IS': '%d.%m.',
+        'it_IT': '%d/%m',
+        'ja_JP': '%m/%d',
+        'ja_KS': '%m/%d',
+        'jv_ID': '%d/%m',
+        'ka_GE': '%d.%m',
+        'kk_KZ': '%d.%m',
+        'km_KH': '%d/%m',
+        'kn_IN': '%d/%m',
+        'ko_KR': '%m. %d.',
+        'ku_TR': '%m-%d',
+        'ky_KG': '%d-%m',
+        'lo_LA': '%d/%m',
+        'lt_LT': '%m-%d',
+        'lv_LV': '%d.%m.',
+        'mg_MG': '%d/%m',
+        'mk_MK': '%d.%m',
+        'ml_IN': '%d/%m',
+        'mn_MN': '%m-&#x440; &#x441;&#x430;&#x440;/%d',
+        # 'mr_IN': '', # TODO: parse Marathi numeric characters
+        'ms_MY': '%d-%m',
+        'mt_MT': '%m-%d',
+        # 'my_MM': '', # TODO: parse Myanmar numeric characters
+        'nb_NO': '%d.%m.',
+        # 'ne_NP': '', # TODO: parse Nepali numeric characters
+        'nl_BE': '%d/%m',
+        'nl_NL': '%d-%m',
+        'nn_NO': '%d.%m.',
+        'or_IN': '%m/%d',
+        'pa_IN': '%d/%m',
+        'pl_PL': '%d.%m',
+        # 'ps_AF': '', # TODO: parse Afghani numeric characters
+        'pt_BR': '%d/%m',
+        'pt_PT': '%d/%m',
+        'ro_RO': '%d.%m',
+        'ru_RU': '%d.%m',
+        'rw_RW': '%m-%d',
+        'sc_IT': '%m-%d',
+        'si_LK': '%m-%d',
+        'sk_SK': '%d. %m.',
+        'sl_SI': '%d. %m.',
+        'sn_ZW': '%m-%d',
+        'so_SO': '%m/%d',
+        'sq_AL': '%d.%m',
+        'sr_RS': '%d.%m.',
+        'sv_SE': '%d/%m',
+        'sw_KE': '%d/%m',
+        'sy_SY': '%m-%d',
+        'sz_PL': '%m-%d',
+        'ta_IN': '%d/%m',
+        'te_IN': '%d/%m',
+        'tg_TJ': '%m-%d',
+        'th_TH': '%d/%m',
+        'tl_PH': '%m/%d',
+        'tr_TR': '%d/%m',
+        'tt_RU': '%d.%m',
+        'tz_MA': '%m/%d',
+        'uk_UA': '%d.%m',
+        'ur_PK': '%d/%m',
+        'uz_UZ': '%d/%m',
+        'vi_VN': '%d/%m',
+        'zh_CN': '%m/%d',
+        'zh_HK': '%d/%m',
+        'zh_TW': '%m/%d',
+        'zz_TR': '%m-%d'
+    }
 
-    # Otherwise, have to convert day names to a day and month
-    offset_dict = get_days_offset_dict()
-    cur_date = datetime.now()
+    # Ensure a supported locale is being used
+    if locale not in locale_date_format_mapping:
+        sys.exit(f"The locale {locale} is not supported.")
+    
+    try:
+        # Try to parse the date using appropriate format based on locale
+        parsed_date = datetime.strptime(birthday_date_str, locale_date_format_mapping[locale])
+        return (parsed_date.day, parsed_date.month)
+    except ValueError:
+        # Otherwise, have to convert day names to a day and month
+        offset_dict = get_days_offset_dict()
+        cur_date = datetime.now()
 
-    if birthday_date_str in offset_dict:
-        cur_date = cur_date + relativedelta(days=offset_dict[birthday_date_str])
-        return (cur_date.day, cur_date.month)
+        if birthday_date_str in offset_dict:
+            cur_date = cur_date + relativedelta(days=offset_dict[birthday_date_str])
+            return (cur_date.day, cur_date.month)
 
-    sys.exit(f'Failed to parse birthday day/month. Regexp match failed and {birthday_date_str} is not in the offset dict {offset_dict}')
+    sys.exit(f'Failed to parse birthday day/month. Parse failed with tooltip_content: "{tooltip_content}", locale: "{locale}". Day name "{birthday_date_str}" is not in the offset dict {offset_dict}')
 
 __offset_dict = None
 def get_days_offset_dict():
