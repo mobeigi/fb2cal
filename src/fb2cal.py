@@ -144,7 +144,7 @@ def google_api_authenticate():
     if not os.path.isfile('credentials.json'):
         sys.exit(f'credentials.json file does not exist')
 
-    SCOPES = 'https://www.googleapis.com/auth/drive'
+    SCOPES = 'https://www.googleapis.com/auth/drive.file'
     store = file.Storage('token.json')
     creds = store.get()
     if not creds or creds.invalid:
