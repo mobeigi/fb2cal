@@ -16,12 +16,11 @@
 
 ## Description
 Around 20 June 2019, Facebook removed their Facebook Birthday ics export option.  
-This change was announced and no reason was ever released.  
-News article: https://www.digitaltrends.com/news/facebook-removes-friends-birthday-export/
+This change was unannounced and no reason was ever released.  
 
-This tool is a workaround to restore said functionality.  
+fb2cal is a tool which restores this functionality.  
 It works by calling various async endpoints that power the https://www.facebook.com/events/birthdays/ page.  
-After gathering a list of birthdays for all the users friends for a full year, it creates a ICS calendar file which is then stored on Google Drive as a publically shared file. This file can then be imported into Google Calendar (or other tools/websites) as a regular ICS file.
+After gathering a list of birthdays for all the users friends for a full year, it creates a ICS calendar file which is then stored on Google Drive as a publically shared file. This ICS file can then be imported into third party tools (such as Google Calendar).
 
 This tool **does not** use the Facebook API.
 
