@@ -30,6 +30,7 @@ import json
 import ics
 from ics import Calendar, Event
 import configparser
+import logging
 
 from oauth2client import file, client, tools
 from googleapiclient.discovery import build
@@ -59,49 +60,85 @@ def main():
     os.chdir(sys.path[0])
 
     # Read config
+    CONFIG_FILE_NAME = 'config.ini'
+    CONFIG_FILE_TEMPLATE_NAME = 'config-template.ini'
+    logger.info(f'Attemping to parse config file {CONFIG_FILE_NAME}...')
     config = configparser.ConfigParser()
     
     try:
-        dataset = config.read('config.ini')
+        dataset = config.read(CONFIG_FILE_NAME)
         if not dataset:
-            print('config.ini does not exist. Please rename config-template.ini if you have not done so already.')
+            logger.error(f'{CONFIG_FILE_NAME} does not exist. Please rename {CONFIG_FILE_TEMPLATE_NAME} if you have not done so already.')
+            raise SystemExit
     except configparser.Error as e:
-        print(f'ConfigParser error: {e}')
+        logger.error(f'ConfigParser error: {e}')
+        raise SystemExit
+
+    logger.info('Config successfully loaded.')
+
+    # Set logging level based on config
+    try:
+        logger.setLevel(getattr(logging, config['LOGGING']['level']))
+        logging.getLogger().setLevel(logger.level) # Also set root logger level
+    except AttributeError:
+        logger.error(f'Invalid logging level specified. Level: {config["LOGGING"]["level"]}')
+        raise SystemError
+    
+    logger.info(f'Logging level set to: {logging.getLevelName(logger.level)}')
 
     # Authenticate with Google API early
+    logger.info('Authenticating with Google Drive API...')
     service = google_api_authenticate()
+    logger.info('Successfully authenticated with Google Drive API.')
 
     # Init browser
     browser = mechanicalsoup.StatefulBrowser()
     init_browser(browser)
 
     # Attempt login
+    logger.info('Attemping to authenticate with Facebook...')
     response = login(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
 
     if response.status_code != 200:
-        sys.exit(f'Failed to authenticate with Facebook. Status code: {response.status_code}.')
+        logger.debug(response.test)
+        logger.error(f'Failed to authenticate with Facebook with email {config["AUTH"]["FB_EMAIL"]}. Status code: {response.status_code}.')
+        raise SystemError
 
     # Check to see if login failed
     if response.soup.find('link', {'rel': 'canonical', 'href': 'https://www.facebook.com/login/'}):
-        sys.exit('Failed to authenticate with Facebook. Please check provided email/password.')
+        logger.debug(response.text)
+        logger.error(f'Failed to authenticate with Facebook with email {config["AUTH"]["FB_EMAIL"]}. Please check provided email/password.')
+        raise SystemError
 
     # Check to see if we hit Facebook security checkpoint
     if response.soup.find('button', {'id': 'checkpointSubmitButton'}):
-        sys.exit('Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
+        logger.debug(response.text)
+        logger.error(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
+        raise SystemError
+
+    logger.info('Successfully authenticated with Facebook.')
 
     # Get birthday objects for all friends via async endpoint
+    logger.info('Fetching all Birthdays via async endpoint...')
     birthdays = get_async_birthdays(browser)
 
     if len(birthdays) == 0:
-        sys.exit('Birthday list is empty. Failed to fetch any birthdays. Aborting.')
+        logger.warning(f'Birthday list is empty. Failed to fetch any birthdays.')
+        raise SystemError
+
+    logger.info(f'A total of {len(birthdays)} birthdays were found.')
 
     # Create birthdays ICS file
+    logger.info('Creating birthday ICS file...')
     c = populate_birthdays_calendar(birthdays)
-
+    logger.info('ICS file created successfully.')
+    
     # Remove blank lines
     ics_str = ''.join([line.rstrip('\n') for line in c])
+    logger.debug(f'ics_str: {ics_str}')
 
     # Upload to drive
+    logger.info('Uploading ICS file to Google Drive...')
     metadata = {'name': config['DRIVE']['ICS_FILE_NAME']}
     UPLOAD_RETRY_ATTEMPTS = 3
 
@@ -113,14 +150,36 @@ def main():
             if err.resp.status == 404: # file not found
                 if config['DRIVE']['DRIVE_FILE_ID']:
                     config.set('DRIVE', 'DRIVE_FILE_ID', '') # reset stored file_id
-                    print(f"HttpError 404 error. File not found: {config['DRIVE']['DRIVE_FILE_ID']}. Resetting stored file_id in config and trying again. Attempt: {attempt+1}", file=sys.stderr)
+                    logger.warning(f'HttpError 404 error. File not found: {config["DRIVE"]["DRIVE_FILE_ID"]}. Resetting stored file_id in config and trying again. Attempt: {attempt+1}')
                     continue
                 else:
-                    print(f'HttpError 404 error. Unexpected error.', file=sys.stderr)
+                    logger.error(f'HttpError 404 error. Unexpected error.')
+                    raise SystemError
+    
+    logger.info(f'Successfully uploaded {config["DRIVE"]["ICS_FILE_NAME"]} to Google Drive with file id: {config["DRIVE"]["DRIVE_FILE_ID"]}\nDirect download link: http://drive.google.com/uc?export=download&id={config["DRIVE"]["DRIVE_FILE_ID"]}')
     
     # Update config file with updated file id for subsequent runs
+    logger.info('Saving changes to config file...')
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
+
+    logger.info('Done! Terminating gracefully.')
+
+def setup_custom_logger(name):
+    """ Setup logger """
+    LOGGING_FILE_PATH = './logs/fb2cal.log'
+
+    if not os.path.exists(os.path.dirname(LOGGING_FILE_PATH)):
+        os.makedirs(os.path.dirname(LOGGING_FILE_PATH), exist_ok=True)
+
+    logging.basicConfig(
+        format='[%(asctime)s] %(name)s %(levelname)s (%(funcName)s) %(message)s',
+        level=logging.DEBUG,
+        handlers=[logging.StreamHandler(),
+                  logging.FileHandler(LOGGING_FILE_PATH, encoding='UTF-8')]
+    )
+    
+    return logging.getLogger(name)
 
 
 def init_browser(browser):
@@ -142,7 +201,8 @@ def google_api_authenticate():
 
     # Confirm credentials.json exists
     if not os.path.isfile('credentials.json'):
-        sys.exit(f'credentials.json file does not exist')
+        logger.error(f'credentials.json file does not exist')
+        raise SystemExit
 
     SCOPES = 'https://www.googleapis.com/auth/drive.file'
     store = file.Storage('token.json')
@@ -150,7 +210,7 @@ def google_api_authenticate():
     if not creds or creds.invalid:
         flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
         creds = tools.run_flow(flow, store)
-    service = build('drive', 'v3', http=creds.authorize(Http()))
+    service = build('drive', 'v3', http=creds.authorize(Http()), cache_discovery=False)
     return service
 
 def upload_and_replace_file(service, file_id, metadata, payload):
@@ -164,7 +224,7 @@ def upload_and_replace_file(service, file_id, metadata, payload):
     else:
         updated_file = service.files().create(body=metadata, media_body=media_body).execute()
 
-        # Need publically accessible ics file so Google calendar can read it
+        # Need publically accessible ics file so third party tools can read from it publically
         permission = { "role": 'reader', 
                         "type": 'anyone'}
         service.permissions().create(fileId=updated_file['id'], body=permission).execute()
@@ -187,12 +247,16 @@ def get_async_token(browser):
     birthday_event_page = browser.get(FACEBOOK_BIRTHDAY_EVENT_PAGE_URL)
     
     if birthday_event_page.status_code != 200:
-        sys.exit(f'Failed to retreive birthday event page. Status code: {birthday_event_page.status_code}.')
+        logger.debug(birthday_event_page.text)
+        logger.error(f'Failed to retreive birthday event page. Status code: {birthday_event_page.status_code}.')
+        raise SystemError
 
     matches = regexp.search(birthday_event_page.text)
 
     if not matches or len(matches.groups()) != 1:
-        sys.exit('Unexpected number of regexp matches when trying to get async token')
+        logger.debug(birthday_event_page.text)
+        logger.error(f'Unexpected number of regexp matches when trying to get async token.')
+        raise SystemError
     
     __cached_async_token = matches[1]
     
@@ -218,16 +282,27 @@ def get_facebook_locale(browser):
     response = browser.get(FACEBOOK_LOCALE_ENDPOINT + urllib.parse.urlencode(query_params))
     
     if response.status_code != 200:
-        sys.exit(f'Failed to get Facebook locale. Params: {query_params}. Status code: {response.status_code}.')
+        logger.debug(response.text)
+        logger.error(f'Failed to get Facebook locale. Params: {query_params}. Status code: {response.status_code}.')
+        raise SystemError
 
-    response = strip_ajax_response_prefix(response.text)
-    json_response = json.loads(response)
-    
-    current_locale = json_response['jsmods']['require'][0][3][1]['currentLocale']
+    # Parse json response
+    try:
+        json_response = json.loads(strip_ajax_response_prefix(response.text))
+        current_locale = json_response['jsmods']['require'][0][3][1]['currentLocale']
+    except json.decoder.JSONDecodeError as e:
+        logger.debug(response.text)
+        logger.error(f'JSONDecodeError: {e}')
+        raise SystemError
+    except KeyError as e:
+        logger.debug(json_response)
+        logger.error(f'KeyError: {e}')
+        raise SystemError
 
     # Validate locale
     if not regexp.match(current_locale):
-        sys.exit(f'Invalid Facebook locale fetched: {current_locale}.')
+        logger.error(f'Invalid Facebook locale fetched: {current_locale}.')
+        raise SystemError
 
     __locale = current_locale
 
@@ -244,6 +319,8 @@ def get_async_birthdays(browser):
     next_12_months_epoch_timestamps = get_next_12_month_epoch_timestamps()
 
     for epoch_timestamp in next_12_months_epoch_timestamps:
+        logger.info(f'Processing birthdays for month {datetime.fromtimestamp(epoch_timestamp).strftime("%B")}.')
+
         # Not all fields are required for response to be given, required fields are date, fb_dtsg_ag and __a
         query_params = {'date': epoch_timestamp,
                         'fb_dtsg_ag': get_async_token(browser),
@@ -252,9 +329,13 @@ def get_async_birthdays(browser):
         response = browser.get(FACEBOOK_BIRTHDAY_ASYNC_ENDPOINT + urllib.parse.urlencode(query_params))
         
         if response.status_code != 200:
-            sys.exit(f'Failed to get async birthday response. Params: {query_params}. Status code: {response.status_code}.')
+            logger.debug(response.text)
+            logger.error(f'Failed to get async birthday response. Params: {query_params}. Status code: {response.status_code}.')
+            raise SystemError
         
-        birthdays.extend(parse_birthday_async_output(browser, response.text))
+        birthdays_for_month = parse_birthday_async_output(browser, response.text)
+        birthdays.extend(birthdays_for_month)
+        logger.info(f'Found {len(birthdays_for_month)} birthdays for month {datetime.fromtimestamp(epoch_timestamp).strftime("%B")}.')
 
     return birthdays
 
@@ -281,6 +362,7 @@ def get_next_12_month_epoch_timestamps():
         # Move cur_date to 1st of next month
         cur_date = cur_date + relativedelta(months=1)
     
+    logger.debug(f'Epoch timestamps are: {epoch_timestamps}')
     return epoch_timestamps
 
 def parse_birthday_async_output(browser, text):
@@ -290,10 +372,19 @@ def parse_birthday_async_output(browser, text):
     
     birthdays = []
 
-    # Fetch birthday card html payload
-    response = strip_ajax_response_prefix(text)
-    json_response = json.loads(response)
-    birthday_card_html = json_response['domops'][0][3]['__html']
+    # Fetch birthday card html payload from json response
+    try:
+        json_response = json.loads(strip_ajax_response_prefix(text))
+        birthday_card_html = json_response['domops'][0][3]['__html']
+    except json.decoder.JSONDecodeError as e:
+        logger.debug(text)
+        logger.error(f'JSONDecodeError: {e}')
+        raise SystemError
+    except KeyError as e:
+        logger.debug(json_response)
+        logger.error(f'KeyError: {e}')
+        raise SystemError
+
     locale = get_facebook_locale(browser)
 
     for vanity_name, tooltip_content, name in regexp.findall(birthday_card_html):
@@ -451,7 +542,8 @@ def parse_birthday_day_month(tooltip_content, name, locale):
 
     # Ensure a supported locale is being used
     if locale not in locale_date_format_mapping:
-        sys.exit(f"The locale {locale} is not supported.")
+        logger.error(f'The locale {locale} is not supported.')
+        raise SystemError
     
     try:
         # Try to parse the date using appropriate format based on locale
@@ -466,7 +558,8 @@ def parse_birthday_day_month(tooltip_content, name, locale):
             cur_date = cur_date + relativedelta(days=offset_dict[birthday_date_str])
             return (cur_date.day, cur_date.month)
 
-    sys.exit(f'Failed to parse birthday day/month. Parse failed with tooltip_content: "{tooltip_content}", locale: "{locale}". Day name "{birthday_date_str}" is not in the offset dict {offset_dict}')
+    logger.error(f'Failed to parse birthday day/month. Parse failed with tooltip_content: "{tooltip_content}", locale: "{locale}". Day name "{birthday_date_str}" is not in the offset dict {offset_dict}')
+    raise SystemError
 
 __offset_dict = None
 def get_days_offset_dict():
@@ -502,23 +595,36 @@ def get_entity_id_from_vanity_name(browser, vanity_name):
     response = browser.get(COMPOSER_QUERY_ASYNC_ENDPOINT + urllib.parse.urlencode(query_params))
     
     if response.status_code != 200:
-        sys.exit(f'Failed to get async composer query response. Params: {query_params}. Status code: {response.status_code}.')
+        logger.debug(response.text)
+        logger.error(f'Failed to get async composer query response. Params: {query_params}. Status code: {response.status_code}.')
+        raise SystemError
 
-    response = strip_ajax_response_prefix(response.text)
-    json_response = json.loads(response)
+    # Parse json response
+    try:
+        json_response = json.loads(strip_ajax_response_prefix(response.text))
 
-    # Loop through entries to see if a valid match is found where alias matches provided vanity name
-    for entry in json_response['payload']['entries']:
-        # Skip other render types like commerce pages etc
-        if entry['vertical_type'] != 'USER' and entry['render_type'] not in ['friend', 'non_friend']:
-            continue
+        # Loop through entries to see if a valid match is found where alias matches provided vanity name
+        for entry in json_response['payload']['entries']:
+            # Skip other render types like commerce pages etc
+            if entry['vertical_type'] != 'USER' and entry['render_type'] not in ['friend', 'non_friend']:
+                continue
 
-        if 'alias' in entry and entry['alias'] == vanity_name:
-            # Match found!
-            return entry['uid']
+            if 'alias' in entry and entry['alias'] == vanity_name:
+                # Match found!
+                return entry['uid']
+                
+    except json.decoder.JSONDecodeError as e:
+        logger.debug(response.text)
+        logger.error(f'JSONDecodeError: {e}')
+        raise SystemError
+    except KeyError as e:
+        logger.debug(json_response)
+        logger.error(f'KeyError: {e}')
+        raise SystemError
 
-    sys.exit(f'Failed to get entity id for vanity_name. Params: {query_params}')
-    return None
+    logger.debug(response.text)
+    logger.error(f'Failed to get entity id for vanity_name. Params: {query_params}')
+    raise SystemError
 
 def strip_ajax_response_prefix(payload):
     """ Strip the prefix that Facebook puts in front of AJAX responses """
@@ -533,7 +639,7 @@ def populate_birthdays_calendar(birthdays):
     c = Calendar()
     c.scale = 'GREGORIAN'
     c.method = 'PUBLISH'
-    c.creator = 'fb2cal - https://git.io/fjMwr'
+    c.creator = f'fb2cal v{__version__} ({__status__}) [{__website__}]'
     c._unused.append(ics.parse.ContentLine(name='X-WR-CALNAME', params={}, value='Facebook Birthdays (fb2cal)'))
     c._unused.append(ics.parse.ContentLine(name='X-PUBLISHED-TTL', params={}, value='PT12H'))
     c._unused.append(ics.parse.ContentLine(name='X-ORIGINAL-URL', params={}, value='/events/birthdays/'))
@@ -556,8 +662,18 @@ def populate_birthdays_calendar(birthdays):
         e._unused.append(ics.parse.ContentLine(name='RRULE', params={}, value='FREQ=YEARLY'))
 
         c.events.add(e)
-    
+
     return c
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    logger = setup_custom_logger('fb2cal')
+    logger.info(f'Starting fb2cal v{__version__} ({__status__}) [{__website__}]')
+    logger.info(f'This project is released under the {__license__} license.')
+
+    try:
+        main()
+    except SystemExit:
+        logger.critical(f'Critical error encountered. Terminating.')
+        sys.exit()
+    finally:
+        logging.shutdown()

@@ -21,7 +21,8 @@ __copyright__ = 'Copyright 2019'
 __email__ = 'me@mobeigi.com'
 __license__ = "GPLv3"
 __maintainer__ = 'Mo Beigi'
-__status__ = "Production"
+__status__ = 'Production'
+__website__ = 'https://git.io/fjMwr'
 
 # Make metadata public to script
-__all__ = ['__author__', '__copyright__', '__email__', '__license__', '__maintainer__', '__status__', '__version_info__', '__version__']
+__all__ = ['__author__', '__copyright__', '__email__', '__license__', '__maintainer__', '__status__', '__website__', '__version_info__', '__version__']

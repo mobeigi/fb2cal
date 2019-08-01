@@ -1,9 +1,12 @@
-# Avoid committing config file
+# Cofig file
 src/config.ini
 
-# Avoid committing credentials
+# Sensitive credentials
 src/credentials.json
 src/token.json
+
+# Logs
+logs/
 
 # Github.com gitignore/Python.gitignore
 # Byte-compiled / optimized / DLL files
