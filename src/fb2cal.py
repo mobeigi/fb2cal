@@ -187,7 +187,7 @@ def get_async_token(browser):
     birthday_event_page = browser.get(FACEBOOK_BIRTHDAY_EVENT_PAGE_URL)
     
     if birthday_event_page.status_code != 200:
-        sys.exit(f'Failed to retreive birthday event page. Status code: {response.status_code}.')
+        sys.exit(f'Failed to retreive birthday event page. Status code: {birthday_event_page.status_code}.')
 
     matches = regexp.search(birthday_event_page.text)
 
@@ -520,12 +520,12 @@ def get_entity_id_from_vanity_name(browser, vanity_name):
     sys.exit(f'Failed to get entity id for vanity_name. Params: {query_params}')
     return None
 
-def strip_ajax_response_prefix(input):
+def strip_ajax_response_prefix(payload):
     """ Strip the prefix that Facebook puts in front of AJAX responses """
 
-    if input.startswith('for (;;);'):
-        return input[9:]
-    return input
+    if payload.startswith('for (;;);'):
+        return payload[9:]
+    return payload
 
 def populate_birthdays_calendar(birthdays):
     """ Populate a birthdays calendar using birthday objects """
