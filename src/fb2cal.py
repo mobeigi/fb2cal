@@ -90,7 +90,7 @@ def main():
     # Authenticate with Google API early
     if util.strtobool(config['DRIVE']['UPLOAD_TO_DRIVE']):
         logger.info('Authenticating with Google Drive API...')
-        service = google_api_authenticate()
+        service = google_drive_api_authenticate()
         logger.info('Successfully authenticated with Google Drive API.')
 
     # Init browser
@@ -99,7 +99,7 @@ def main():
 
     # Attempt login
     logger.info('Attemping to authenticate with Facebook...')
-    response = login(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
+    response = facebook_authenticate(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
 
     if response.status_code != 200:
         logger.debug(response.test)
@@ -210,7 +210,7 @@ def init_browser(browser):
     """ Initialize browser as needed """
     browser.set_user_agent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36')
 
-def login(browser, email, password):
+def facebook_authenticate(browser, email, password):
     """ Authenticate with Facebook """
     
     FACEBOOK_LOGIN_URL = 'http://www.facebook.com/login.php'
@@ -220,8 +220,8 @@ def login(browser, email, password):
     login_form.find('input', {'id': 'pass'})['value'] = password
     return browser.submit(login_form, login_page.url)
 
-def google_api_authenticate():
-    """ Authenticate with google apis """
+def google_drive_api_authenticate():
+    """ Authenticate with Google Drive Api """
 
     # Confirm credentials.json exists
     if not os.path.isfile('credentials.json'):
