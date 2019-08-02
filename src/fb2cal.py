@@ -607,12 +607,38 @@ def get_days_offset_dict():
     return __offset_dict
 
 def get_entity_id_from_vanity_name(browser, vanity_name):
-    """ Given a vanity name (user/page custom name), get the unique identifier entity_id """
+    """ Given a vanity name (user/page custom name), try to get the unique identifier entity_id """
+
+    # Method 1: Composer Query async
+    # Loop through entries to see if a valid match is found where alias matches provided vanity name
+    composer_query_entries = get_composer_query_entries(browser, vanity_name)
+    for entry in composer_query_entries:
+        # Skip other render types like commerce pages etc
+        if entry['vertical_type'] != 'USER' and entry['render_type'] not in ['friend', 'non_friend']:
+            continue
+
+        if 'alias' in entry and entry['alias'] == vanity_name:
+            # Match found!
+            return entry['uid']
+    logger.debug(composer_query_entries)
+
+    # Method 2: Scrape users profile page for entity id (significantly slower)
+    logger.warning(f'Falling back to getting entity id from profile page for vanity name {vanity_name}. This method is significantly slower.')
+    entity_id = get_entity_id_from_profile_page(browser, vanity_name)
+    if entity_id:
+        return entity_id
+
+    # Failure
+    logger.error(f'Failed to get entity id for vanity name {vanity_name}.')
+    raise SystemError
+
+def get_composer_query_entries(browser, value):
+    """ Get list of entries from the composer query endpoint """
 
     COMPOSER_QUERY_ASYNC_ENDPOINT = "https://www.facebook.com/ajax/mercury/composer_query.php?"
 
     # Not all fields are required for response to be given, required fields are value, fb_dtsg_ag and __a
-    query_params = {'value': vanity_name,
+    query_params = {'value': value,
                     'fb_dtsg_ag': get_async_token(browser),
                     '__a': '1'}
 
@@ -620,35 +646,43 @@ def get_entity_id_from_vanity_name(browser, vanity_name):
     
     if response.status_code != 200:
         logger.debug(response.text)
-        logger.error(f'Failed to get async composer query response. Params: {query_params}. Status code: {response.status_code}.')
-        raise SystemError
+        logger.warning(f'Failed to get async composer query response. Params: {query_params}. Status code: {response.status_code}.')
+        return []
 
     # Parse json response
     try:
         json_response = json.loads(strip_ajax_response_prefix(response.text))
-
-        # Loop through entries to see if a valid match is found where alias matches provided vanity name
-        for entry in json_response['payload']['entries']:
-            # Skip other render types like commerce pages etc
-            if entry['vertical_type'] != 'USER' and entry['render_type'] not in ['friend', 'non_friend']:
-                continue
-
-            if 'alias' in entry and entry['alias'] == vanity_name:
-                # Match found!
-                return entry['uid']
-                
+        return json_response['payload']['entries']
     except json.decoder.JSONDecodeError as e:
         logger.debug(response.text)
-        logger.error(f'JSONDecodeError: {e}')
-        raise SystemError
+        logger.warning(f'JSONDecodeError: {e}')
+        return []
     except KeyError as e:
         logger.debug(json_response)
-        logger.error(f'KeyError: {e}')
-        raise SystemError
+        logger.warning(f'KeyError: {e}')
+        return []
 
-    logger.debug(response.text)
-    logger.error(f'Failed to get entity id for vanity_name. Params: {query_params}')
-    raise SystemError
+def get_entity_id_from_profile_page(browser, vanity_name):
+    """ Get entity id from a users profile page """
+
+    FACEBOOK_PROFILE_PAGE_ENTITY_ID_REGEXP_STRING = r'entity_id:(\d+),ef_page:'
+    regexp = re.compile(FACEBOOK_PROFILE_PAGE_ENTITY_ID_REGEXP_STRING, re.MULTILINE)
+
+    response = browser.get(f'https://m.facebook.com/{vanity_name}')
+    if response.status_code != 200:
+        logger.debug(response.text)
+        logger.warning(f'Failed to get entity id from profile page. Vanity name: {vanity_name}, Status code: {response.status_code}.')
+        return None
+
+    matches = regexp.search(response.text)
+
+    if not matches or len(matches.groups()) != 1:
+        logger.debug(response.text)
+        logger.warning(f'Unexpected number of regexp matches when trying to get entity id from profile page. Vanity name: {vanity_name}.')
+        return None
+    
+    return matches[1]
+    
 
 def strip_ajax_response_prefix(payload):
     """ Strip the prefix that Facebook puts in front of AJAX responses """
