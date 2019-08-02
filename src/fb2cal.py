@@ -31,6 +31,7 @@ import ics
 from ics import Calendar, Event
 import configparser
 import logging
+from distutils import util
 
 from oauth2client import file, client, tools
 from googleapiclient.discovery import build
@@ -87,9 +88,10 @@ def main():
     logger.info(f'Logging level set to: {logging.getLevelName(logger.level)}')
 
     # Authenticate with Google API early
-    logger.info('Authenticating with Google Drive API...')
-    service = google_api_authenticate()
-    logger.info('Successfully authenticated with Google Drive API.')
+    if util.strtobool(config['DRIVE']['UPLOAD_TO_DRIVE']):
+        logger.info('Authenticating with Google Drive API...')
+        service = google_api_authenticate()
+        logger.info('Successfully authenticated with Google Drive API.')
 
     # Init browser
     browser = mechanicalsoup.StatefulBrowser()
@@ -137,31 +139,53 @@ def main():
     ics_str = ''.join([line.rstrip('\n') for line in c])
     logger.debug(f'ics_str: {ics_str}')
 
-    # Upload to drive
-    logger.info('Uploading ICS file to Google Drive...')
-    metadata = {'name': config['DRIVE']['ICS_FILE_NAME']}
-    UPLOAD_RETRY_ATTEMPTS = 3
+    # Save to file system
+    if util.strtobool(config['FILESYSTEM']['SAVE_TO_FILE']):
+        logger.info(f'Saving ICS file to local file system...')
 
-    for attempt in range(UPLOAD_RETRY_ATTEMPTS):
-        try:
-            updated_file = upload_and_replace_file(service, config['DRIVE']['DRIVE_FILE_ID'], metadata, bytearray(ics_str, 'utf-8')) # Pass payload as bytes
-            config.set('DRIVE', 'DRIVE_FILE_ID', updated_file['id'])
-        except HttpError as err:
-            if err.resp.status == 404: # file not found
-                if config['DRIVE']['DRIVE_FILE_ID']:
-                    config.set('DRIVE', 'DRIVE_FILE_ID', '') # reset stored file_id
-                    logger.warning(f'HttpError 404 error. File not found: {config["DRIVE"]["DRIVE_FILE_ID"]}. Resetting stored file_id in config and trying again. Attempt: {attempt+1}')
-                    continue
+        if not os.path.exists(os.path.dirname(config['FILESYSTEM']['ICS_FILE_PATH'])):
+            os.makedirs(os.path.dirname(config['FILESYSTEM']['ICS_FILE_PATH']), exist_ok=True)
+
+        with open(config['FILESYSTEM']['ICS_FILE_PATH'], 'w') as ics_file:
+            ics_file.write(ics_str)
+        logger.info(f'Successfully saved ICS file to {os.path.abspath(config["FILESYSTEM"]["ICS_FILE_PATH"])}')
+
+    # Upload to drive
+    if util.strtobool(config['DRIVE']['UPLOAD_TO_DRIVE']):
+        logger.info('Uploading ICS file to Google Drive...')
+        metadata = {'name': config['DRIVE']['ICS_FILE_NAME']}
+        UPLOAD_RETRY_ATTEMPTS = 3
+        uploaded_successfully = False
+
+        for attempt in range(UPLOAD_RETRY_ATTEMPTS):
+            try:
+                updated_file = upload_and_replace_file(service, config['DRIVE']['DRIVE_FILE_ID'], metadata, bytearray(ics_str, 'utf-8')) # Pass payload as bytes
+                config.set('DRIVE', 'DRIVE_FILE_ID', updated_file['id'])
+                uploaded_successfully = True
+            except HttpError as e:
+                if e.resp.status == 404: # file not found
+                    if config['DRIVE']['DRIVE_FILE_ID']:
+                        logger.warning(f'{e}. Resetting stored file id in config and trying again. Attempt: {attempt+1}')
+                        config.set('DRIVE', 'DRIVE_FILE_ID', '') # reset stored file_id
+                        continue
+                    else:
+                        logger.error(e)
+                        raise SystemError
                 else:
-                    logger.error(f'HttpError 404 error. Unexpected error.')
+                    logger.error(e)
                     raise SystemError
     
-    logger.info(f'Successfully uploaded {config["DRIVE"]["ICS_FILE_NAME"]} to Google Drive with file id: {config["DRIVE"]["DRIVE_FILE_ID"]}\nDirect download link: http://drive.google.com/uc?export=download&id={config["DRIVE"]["DRIVE_FILE_ID"]}')
-    
+        if uploaded_successfully:
+            logger.info(f'Successfully uploaded {config["DRIVE"]["ICS_FILE_NAME"]} to Google Drive with file id: {config["DRIVE"]["DRIVE_FILE_ID"]}\nDirect download link: http://drive.google.com/uc?export=download&id={config["DRIVE"]["DRIVE_FILE_ID"]}')
+        else:
+            logger.error(f'Failed to upload {config["DRIVE"]["ICS_FILE_NAME"]} to Google Drive after {UPLOAD_RETRY_ATTEMPTS} attempts.')
+            raise SystemError
+
     # Update config file with updated file id for subsequent runs
     logger.info('Saving changes to config file...')
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
+    logger.info('Successfully saved changes to config file.')
 
     logger.info('Done! Terminating gracefully.')
 

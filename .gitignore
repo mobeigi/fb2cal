@@ -8,6 +8,9 @@ src/token.json
 # Logs
 logs/
 
+# Output files
+*.ics
+
 # Github.com gitignore/Python.gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
