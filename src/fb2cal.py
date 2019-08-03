@@ -24,8 +24,10 @@ import re
 import mechanicalsoup
 import requests
 import urllib.parse
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import locale
 import pytz
 import json
 import ics
@@ -441,7 +443,7 @@ def parse_birthday_async_output(browser, text):
         logger.error(f'KeyError: {e}')
         raise SystemError
 
-    locale = get_facebook_locale(browser)
+    user_locale = get_facebook_locale(browser)
 
     for vanity_name, tooltip_content, name in regexp.findall(birthday_card_html):
         # Check to see if user has no custom vanity name in which case we'll just take the id directly
@@ -451,13 +453,13 @@ def parse_birthday_async_output(browser, text):
             uid = get_entity_id_from_vanity_name(browser, vanity_name)
         
         # Parse tooltip content into day/month
-        day, month = parse_birthday_day_month(tooltip_content, name, locale)
+        day, month = parse_birthday_day_month(tooltip_content, name, user_locale)
 
         birthdays.append(Birthday(uid, name, day, month))
 
     return birthdays
 
-def parse_birthday_day_month(tooltip_content, name, locale):
+def parse_birthday_day_month(tooltip_content, name, user_locale):
     """ Convert the Facebook birthday tooltip content to a day and month number. Facebook will use a tooltip format based on the users Facebook language (locale).
         The date will be in some date format which reveals the birthday day and birthday month.
         This is done for all birthdays expect those in the following week relative to the current date.
@@ -597,43 +599,46 @@ def parse_birthday_day_month(tooltip_content, name, locale):
     }
 
     # Ensure a supported locale is being used
-    if locale not in locale_date_format_mapping:
-        logger.error(f'The locale {locale} is not supported.')
+    if user_locale not in locale_date_format_mapping:
+        logger.error(f'The locale {user_locale} is not supported.')
         raise SystemError
     
     try:
         # Try to parse the date using appropriate format based on locale
-        parsed_date = datetime.strptime(birthday_date_str, locale_date_format_mapping[locale])
+        parsed_date = datetime.strptime(birthday_date_str, locale_date_format_mapping[user_locale])
         return (parsed_date.day, parsed_date.month)
     except ValueError:
         # Otherwise, have to convert day names to a day and month
-        offset_dict = get_days_offset_dict()
+        offset_dict = get_days_offset_dict(user_locale)
         cur_date = datetime.now()
 
-        if birthday_date_str in offset_dict:
-            cur_date = cur_date + relativedelta(days=offset_dict[birthday_date_str])
+        # Use beautiful soup to parse special html codes properly before matching with our dict
+        day_name = BeautifulSoup(birthday_date_str, 'lxml').get_text().lower()
+
+        if day_name in offset_dict:
+            cur_date = cur_date + relativedelta(days=offset_dict[day_name])
             return (cur_date.day, cur_date.month)
 
-    logger.error(f'Failed to parse birthday day/month. Parse failed with tooltip_content: "{tooltip_content}", locale: "{locale}". Day name "{birthday_date_str}" is not in the offset dict {offset_dict}')
+    logger.error(f'Failed to parse birthday day/month. Parse failed with tooltip_content: "{tooltip_content}", locale: "{user_locale}". Day name "{day_name}" is not in the offset dict {offset_dict}')
     raise SystemError
 
 __offset_dict = None
-def get_days_offset_dict():
-    """ The day name to offset dict maps a day to a numerical offset which can be used to add days to the current date. """
-
-    global __offset_dict
-
-    if __offset_dict:
-        return __offset_dict
+def get_days_offset_dict(user_locale):
+    """ The day name to offset dict maps a day to a numerical offset which can be used to add days to the current date.
+        Day names will match the provided user locale and will be in lowercase.
+    """
 
     __offset_dict = {}
     
-    # todays birthdays will be shown normally (as date) so we can skip today
+    # Set locale to get localized day names
+    locale.setlocale(locale.LC_ALL, user_locale)
+
+    # Todays birthdays will be shown normally (as date) so we can skip today
     cur_date = datetime.now() + relativedelta(days=1)
     
     # Iterate through the following 7 days
     for i in range(1, 8):
-        __offset_dict[cur_date.strftime("%A")] = i
+        __offset_dict[cur_date.strftime('%A').lower()] = i
         cur_date = cur_date + relativedelta(days=1)
 
     return __offset_dict
