@@ -22,6 +22,7 @@ import os
 import sys
 import re
 import mechanicalsoup
+import requests
 import urllib.parse
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -99,25 +100,7 @@ def main():
 
     # Attempt login
     logger.info('Attemping to authenticate with Facebook...')
-    response = facebook_authenticate(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
-
-    if response.status_code != 200:
-        logger.debug(response.test)
-        logger.error(f'Failed to authenticate with Facebook with email {config["AUTH"]["FB_EMAIL"]}. Status code: {response.status_code}.')
-        raise SystemError
-
-    # Check to see if login failed
-    if response.soup.find('link', {'rel': 'canonical', 'href': 'https://www.facebook.com/login/'}):
-        logger.debug(response.text)
-        logger.error(f'Failed to authenticate with Facebook with email {config["AUTH"]["FB_EMAIL"]}. Please check provided email/password.')
-        raise SystemError
-
-    # Check to see if we hit Facebook security checkpoint
-    if response.soup.find('button', {'id': 'checkpointSubmitButton'}):
-        logger.debug(response.text)
-        logger.error(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
-        raise SystemError
-
+    facebook_authenticate(browser, config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
     logger.info('Successfully authenticated with Facebook.')
 
     # Get birthday objects for all friends via async endpoint
@@ -211,14 +194,63 @@ def init_browser(browser):
     browser.set_user_agent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36')
 
 def facebook_authenticate(browser, email, password):
-    """ Authenticate with Facebook """
+    """ Authenticate with Facebook setting up session for further requests """
     
     FACEBOOK_LOGIN_URL = 'http://www.facebook.com/login.php'
+    FACEBOOK_DATR_TOKEN_REGEXP = r'\"_js_datr\",\"(.*?)\"'
+    regexp = re.compile(FACEBOOK_DATR_TOKEN_REGEXP, re.MULTILINE)
+
+    # Add 'datr' cookie to session for countries adhering to GDPR compliance
     login_page = browser.get(FACEBOOK_LOGIN_URL)
+    
+    if login_page.status_code != 200:
+        logger.debug(login_page.text)
+        logger.error(f'Failed to authenticate with Facebook with email {email}. Stage: Initial Request for datr Token, Status code: {login_page.status_code}.')
+        raise SystemError
+
+    matches = regexp.search(login_page.text)
+
+    if not matches or len(matches.groups()) != 1:
+        logger.debug(login_page.text)
+        logger.error(f'Match failed or unexpected number of regexp matches when trying to get datr token.')
+        raise SystemError
+    
+    _js_datr = matches[1]
+    
+    datr_cookie = requests.cookies.create_cookie(domain='.facebook.com', name='datr', value=_js_datr)
+    _js_datr_cookie = requests.cookies.create_cookie(domain='.facebook.com', name='_js_datr', value=_js_datr)
+    browser.get_cookiejar().set_cookie(datr_cookie)
+    browser.get_cookiejar().set_cookie(_js_datr_cookie)
+
+    # Perform main login now
+    login_page = browser.get(FACEBOOK_LOGIN_URL)
+
+    if login_page.status_code != 200:
+        logger.debug(login_page.text)
+        logger.error(f'Failed to authenticate with Facebook with email {email}. Stage: Main Login Attempt, Status code: {login_page.status_code}.')
+        raise SystemError
+
     login_form = login_page.soup.find('form', {'id': 'login_form'})
     login_form.find('input', {'id': 'email'})['value'] = email
     login_form.find('input', {'id': 'pass'})['value'] = password
-    return browser.submit(login_form, login_page.url)
+    login_response = browser.submit(login_form, login_page.url)
+
+    if login_response.status_code != 200:
+        logger.debug(login_response.text)
+        logger.error(f'Failed to authenticate with Facebook with email {email}. Stage: Main Login Reponse, Status code: {login_response.status_code}.')
+        raise SystemError
+
+    # Check to see if login failed
+    if login_response.soup.find('link', {'rel': 'canonical', 'href': 'https://www.facebook.com/login/'}):
+        logger.debug(login_response.text)
+        logger.error(f'Failed to authenticate with Facebook with email {email}. Please check provided email/password.')
+        raise SystemError
+
+    # Check to see if we hit Facebook security checkpoint
+    if login_response.soup.find('button', {'id': 'checkpointSubmitButton'}):
+        logger.debug(login_response.text)
+        logger.error(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
+        raise SystemError
 
 def google_drive_api_authenticate():
     """ Authenticate with Google Drive Api """
@@ -279,7 +311,7 @@ def get_async_token(browser):
 
     if not matches or len(matches.groups()) != 1:
         logger.debug(birthday_event_page.text)
-        logger.error(f'Unexpected number of regexp matches when trying to get async token.')
+        logger.error(f'Match failed or unexpected number of regexp matches when trying to get async token.')
         raise SystemError
     
     __cached_async_token = matches[1]
@@ -678,7 +710,7 @@ def get_entity_id_from_profile_page(browser, vanity_name):
 
     if not matches or len(matches.groups()) != 1:
         logger.debug(response.text)
-        logger.warning(f'Unexpected number of regexp matches when trying to get entity id from profile page. Vanity name: {vanity_name}.')
+        logger.warning(f'Match failed or unexpected number of regexp matches when trying to get entity id from profile page. Vanity name: {vanity_name}.')
         return None
     
     return matches[1]
