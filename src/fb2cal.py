@@ -65,14 +65,15 @@ def main():
 
     # Read config
     CONFIG_FILE_NAME = 'config.ini'
+    CONFIG_FILE_PATH = f'../config/{CONFIG_FILE_NAME}'
     CONFIG_FILE_TEMPLATE_NAME = 'config-template.ini'
     logger.info(f'Attemping to parse config file {CONFIG_FILE_NAME}...')
     config = configparser.ConfigParser()
     
     try:
-        dataset = config.read(CONFIG_FILE_NAME)
+        dataset = config.read(CONFIG_FILE_PATH)
         if not dataset:
-            logger.error(f'{CONFIG_FILE_NAME} does not exist. Please rename {CONFIG_FILE_TEMPLATE_NAME} if you have not done so already.')
+            logger.error(f'{CONFIG_FILE_PATH} does not exist. Please rename {CONFIG_FILE_TEMPLATE_NAME} if you have not done so already.')
             raise SystemExit
     except configparser.Error as e:
         logger.error(f'ConfigParser error: {e}')
@@ -168,7 +169,7 @@ def main():
 
     # Update config file with updated file id for subsequent runs
     logger.info('Saving changes to config file...')
-    with open('config.ini', 'w') as configfile:
+    with open(CONFIG_FILE_PATH, 'w') as configfile:
         config.write(configfile)
     logger.info('Successfully saved changes to config file.')
 

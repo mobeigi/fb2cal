@@ -1,5 +1,5 @@
 # Cofig file
-src/config.ini
+config/config.ini
 
 # Sensitive credentials
 src/credentials.json
