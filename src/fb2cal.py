@@ -249,11 +249,13 @@ def facebook_authenticate(browser, email, password):
         logger.error(f'Failed to authenticate with Facebook with email {email}. Please check provided email/password.')
         raise SystemError
 
-    # Check to see if we hit Facebook security checkpoint
     if login_response.soup.find('button', {'id': 'checkpointSubmitButton'}):
-        logger.debug(login_response.text)
-        logger.error(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
-        raise SystemError
+        #logger.debug(login_response.text)
+        logger.info(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
+        #raise SystemError
+        input("Press enter when the device is autorize")
+        #login_response.soup.select_form()
+        #checkpoint_response = login_response.soup.submit_selected(btnName="submit[Continue]")
 
 def google_drive_api_authenticate():
     """ Authenticate with Google Drive Api """
