@@ -1,5 +1,6 @@
 MechanicalSoup
 ics>=0.4
+babel
 pytz
 httplib2
 requests

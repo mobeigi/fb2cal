@@ -20,6 +20,7 @@ from __init__ import *
 
 import os
 import sys
+import platform
 import re
 import mechanicalsoup
 import requests
@@ -27,6 +28,9 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from babel import Locale
+from babel.core import UnknownLocaleError
+from babel.dates import format_date
 import locale
 import pytz
 import json
@@ -601,7 +605,7 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
 
     # Ensure a supported locale is being used
     if user_locale not in locale_date_format_mapping:
-        logger.error(f'The locale {user_locale} is not supported.')
+        logger.error(f'The locale {user_locale} is not supported by Facebook.')
         raise SystemError
     
     try:
@@ -610,7 +614,7 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
         return (parsed_date.day, parsed_date.month)
     except ValueError:
         # Otherwise, have to convert day names to a day and month
-        offset_dict = get_days_offset_dict(user_locale)
+        offset_dict = get_day_name_offset_dict(user_locale)
         cur_date = datetime.now()
 
         # Use beautiful soup to parse special html codes properly before matching with our dict
@@ -623,26 +627,64 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
     logger.error(f'Failed to parse birthday day/month. Parse failed with tooltip_content: "{tooltip_content}", locale: "{user_locale}". Day name "{day_name}" is not in the offset dict {offset_dict}')
     raise SystemError
 
-__offset_dict = None
-def get_days_offset_dict(user_locale):
-    """ The day name to offset dict maps a day to a numerical offset which can be used to add days to the current date.
+def get_day_name_offset_dict(user_locale):
+    """ The day name to offset dict maps a day name to a numerical day offset which can be used to add days to the current date.
         Day names will match the provided user locale and will be in lowercase.
     """
 
-    __offset_dict = {}
-    
-    # Set locale to get localized day names
-    locale.setlocale(locale.LC_ALL, user_locale)
+    offset_dict = {}
 
-    # Todays birthdays will be shown normally (as date) so we can skip today
-    cur_date = datetime.now() + relativedelta(days=1)
-    
-    # Iterate through the following 7 days
-    for i in range(1, 8):
-        __offset_dict[cur_date.strftime('%A').lower()] = i
-        cur_date = cur_date + relativedelta(days=1)
+    # Todays birthdays will be shown normally (as a date) so start from tomorrow
+    start_date = datetime.now() + relativedelta(days=1)
 
-    return __offset_dict
+    # Method 1: Babel
+    try:
+        babel_locale = Locale.parse(user_locale, sep='_')
+        cur_date = start_date
+
+        # Iterate through the following 7 days
+        for i in range(1, 8):
+            offset_dict[format_date(cur_date, 'EEEE', locale=babel_locale).lower()] = i
+            cur_date = cur_date + relativedelta(days=1)
+
+        return offset_dict
+    except UnknownLocaleError as e:
+        logger.debug(f'Babel UnknownLocaleError: {e}')
+
+    # Method 2: System locale
+    cur_date = start_date
+    locale_check_list = [user_locale, user_locale + 'UTF-8', user_locale + 'utf-8']
+    system_locale = None
+
+    # Windows
+    if any(platform.win32_ver()):
+        for locale_to_check in locale_check_list:
+            if locale_to_check in locale.windows_locale.values():
+                system_locale = locale_to_check
+                break
+    # POSIX
+    else:
+        for locale_to_check in locale_check_list:
+            if locale_to_check in locale.locale_alias.values():
+                system_locale = locale_to_check
+                break
+
+    # Check if system locale was found
+    if system_locale:
+        locale.setlocale(locale.LC_ALL, system_locale)
+
+        # Iterate through the following 7 days
+        for i in range(1, 8):
+            offset_dict[cur_date.strftime('%A').lower()] = i
+            cur_date = cur_date + relativedelta(days=1)
+
+        return offset_dict
+    else:
+        logger.debug(f"Unable to find system locale for provided user locale: '{user_locale}'")
+
+    # Failure
+    logger.error(f"Failed to generate day name offset dictionary for provided user locale: '{user_locale}'")
+    raise SystemError
 
 def get_entity_id_from_vanity_name(browser, vanity_name):
     """ Given a vanity name (user/page custom name), try to get the unique identifier entity_id """
