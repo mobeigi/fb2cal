@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://i.imgur.com/DdzpT8O.png" height="96px" width="96px"/>
+<img src="https://i.imgur.com/ToHPLjD.png" height="110px" width="auto"/>
 <br/>
 <h3 align="center">fb2cal</h3>
 <p align="center">Facebook Birthday Events to ICS file converter</p>
