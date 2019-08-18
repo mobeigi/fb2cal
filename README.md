@@ -25,6 +25,9 @@ The ICS file can also be stored on the local file system.
 
 This tool **does not** use the Facebook API.
 
+## fb2cal Setup Guide for Non-Devs [Windows]
+[![fb2cal Setup Guide for Non-Devs [Windows]](http://img.youtube.com/vi/UnsbV8EJ8-Y/0.jpg)](http://www.youtube.com/watch?v=UnsbV8EJ8-Y "fb2cal Setup Guide for Non-Devs [Windows]")
+
 ## Requirements
 * python3.6+ (and all required python3 modules)
 * Scheduler tool to automatically run script periodically
