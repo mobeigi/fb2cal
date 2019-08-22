@@ -59,6 +59,11 @@ This tool can be configured by editing the `config/config.ini` configuration fil
 ## fb2cal Setup Guide for Non-Devs [Windows]
 [![fb2cal Setup Guide for Non-Devs [Windows]](http://img.youtube.com/vi/UnsbV8EJ8-Y/0.jpg)](http://www.youtube.com/watch?v=UnsbV8EJ8-Y "fb2cal Setup Guide for Non-Devs [Windows]")
 
+## Caveats
+* Facebook accounts secured with 2FA are currently not supported (see [#9](../../issues/9))
+* During Facebook authentication, a security checkpoint may trigger that will force you to change your Facebook password.
+* Some locales are currently not supported (see [#13](../../issues/13))
+
 ## Contributions
 Contributions are always welcome!
 Just make a [pull request](../../pulls).
