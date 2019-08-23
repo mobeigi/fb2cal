@@ -76,7 +76,7 @@ def main():
     config = configparser.ConfigParser()
     
     try:
-        dataset = config.read(CONFIG_FILE_PATH)
+        dataset = config.read(CONFIG_FILE_PATH, encoding='UTF-8')
         if not dataset:
             logger.error(f'{CONFIG_FILE_PATH} does not exist. Please rename {CONFIG_FILE_TEMPLATE_NAME} if you have not done so already.')
             raise SystemExit
