@@ -31,6 +31,7 @@ from dateutil.relativedelta import relativedelta
 from babel import Locale
 from babel.core import UnknownLocaleError
 from babel.dates import format_date
+import html
 import locale
 import pytz
 import json
@@ -136,7 +137,7 @@ def main():
         if not os.path.exists(os.path.dirname(config['FILESYSTEM']['ICS_FILE_PATH'])):
             os.makedirs(os.path.dirname(config['FILESYSTEM']['ICS_FILE_PATH']), exist_ok=True)
 
-        with open(config['FILESYSTEM']['ICS_FILE_PATH'], 'w') as ics_file:
+        with open(config['FILESYSTEM']['ICS_FILE_PATH'], mode='w', encoding="UTF-8") as ics_file:
             ics_file.write(ics_str)
         logger.info(f'Successfully saved ICS file to {os.path.abspath(config["FILESYSTEM"]["ICS_FILE_PATH"])}')
 
@@ -460,7 +461,7 @@ def parse_birthday_async_output(browser, text):
         # Parse tooltip content into day/month
         day, month = parse_birthday_day_month(tooltip_content, name, user_locale)
 
-        birthdays.append(Birthday(uid, name, day, month))
+        birthdays.append(Birthday(uid, html.unescape(name), day, month))
 
     return birthdays
 
