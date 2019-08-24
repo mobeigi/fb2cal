@@ -26,9 +26,10 @@ The ICS file can also be stored on the local file system.
 This tool **does not** use the Facebook API.
 
 ## Requirements
+* Facebook account
 * python3.6+ (and all required python3 modules)
-* Scheduler tool to automatically run script periodically
-* Google Drive API access
+* Scheduler tool to automatically run script periodically (optional)
+* Google Drive API access (optional)
 
 ## Instructions
 1. Clone repo  
