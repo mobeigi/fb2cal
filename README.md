@@ -61,7 +61,7 @@ This tool can be configured by editing the `config/config.ini` configuration fil
 [![fb2cal Setup Guide for Non-Devs [Windows]](http://img.youtube.com/vi/UnsbV8EJ8-Y/0.jpg)](http://www.youtube.com/watch?v=UnsbV8EJ8-Y "fb2cal Setup Guide for Non-Devs [Windows]")
 
 ## Scheduled Task Frequency
-It is recommended to run the script **once every 24 hours** to update the ICS file to ensure it is synchronized with the latest Facebook changes (due to friend addition/removal) and to respect the privacy of users who decide to hide their birthday later on. Facebook originally recommended polling for Birthday updates **once every 12 hours** based on the `X-PUBLISHED-TTL:PT12H` header included in their ICS files.
+It is recommended to run the script **once every 24 hours** to update the ICS file to ensure it is synchronized with the latest Facebook changes (due to friend addition/removal) and to respect the privacy of users who decide to hide their birthday later on. Facebook originally recommended polling for birthday updates **once every 12 hours** based on the `X-PUBLISHED-TTL:PT12H` header included in their ICS files.
 
 ## Caveats
 * Facebook accounts secured with 2FA are currently not supported (see [#9](../../issues/9))
