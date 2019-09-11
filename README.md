@@ -48,7 +48,7 @@ This tool **does not** use the Facebook API.
 6. Run script manually once for testing purposes:
 `python ./fb2cal.py`
 7. Check Google Drive to ensure your ics file was made. 
-8. Setup cron jobs/Task Scheduler/Automator to repeatly run the script to periodically generate an updated ics file. It is recommended to run the script **once every 24 hours**.
+8. Setup Cron Jobs/Task Scheduler/Automator to repeatedly run the script to periodically generate an updated ics file. See **Scheduled Task Frequency** section for more info.
 9. Use the following link to import your ics into Calendar applications (i.e. Google Calendar):  
 `http://drive.google.com/uc?export=download&id=DRIVE_FILE_ID`. Replace **DRIVE_FILE_ID** with the autopopulated value found in your `config/config.ini` file.
 
@@ -59,6 +59,9 @@ This tool can be configured by editing the `config/config.ini` configuration fil
 
 ## fb2cal Setup Guide for Non-Devs [Windows]
 [![fb2cal Setup Guide for Non-Devs [Windows]](http://img.youtube.com/vi/UnsbV8EJ8-Y/0.jpg)](http://www.youtube.com/watch?v=UnsbV8EJ8-Y "fb2cal Setup Guide for Non-Devs [Windows]")
+
+## Scheduled Task Frequency
+It is recommended to run the script **once every 24 hours** to update the ICS file to ensure it is synchronized with the latest Facebook changes (due to friend addition/removal) and to respect the privacy of users who decide to hide their birthday later on. Facebook originally recommended polling for Birthday updates **once every 12 hours** based on the `X-PUBLISHED-TTL:PT12H` header included in their ICS files.
 
 ## Caveats
 * Facebook accounts secured with 2FA are currently not supported (see [#9](../../issues/9))
