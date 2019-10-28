@@ -37,6 +37,7 @@ import pytz
 import json
 import ics
 from ics import Calendar, Event
+from ics.grammar.parse import ContentLine
 import configparser
 import logging
 from distutils import util
@@ -779,9 +780,9 @@ def populate_birthdays_calendar(birthdays):
     c.scale = 'GREGORIAN'
     c.method = 'PUBLISH'
     c.creator = f'fb2cal v{__version__} ({__status__}) [{__website__}]'
-    c._unused.append(ics.parse.ContentLine(name='X-WR-CALNAME', params={}, value='Facebook Birthdays (fb2cal)'))
-    c._unused.append(ics.parse.ContentLine(name='X-PUBLISHED-TTL', params={}, value='PT12H'))
-    c._unused.append(ics.parse.ContentLine(name='X-ORIGINAL-URL', params={}, value='/events/birthdays/'))
+    c.extra.append(ContentLine(name='X-WR-CALNAME', value='Facebook Birthdays (fb2cal)'))
+    c.extra.append(ContentLine(name='X-PUBLISHED-TTL', value='PT12H'))
+    c.extra.append(ContentLine(name='X-ORIGINAL-URL', value='/events/birthdays/'))
 
     cur_date = datetime.now()
 
@@ -798,7 +799,7 @@ def populate_birthdays_calendar(birthdays):
         e.begin = f'{year}-{month}-{day} 00:00:00'
         e.make_all_day()
         e.duration = timedelta(days=1)
-        e._unused.append(ics.parse.ContentLine(name='RRULE', params={}, value='FREQ=YEARLY'))
+        e.extra.append(ContentLine(name='RRULE', value='FREQ=YEARLY'))
 
         c.events.add(e)
 

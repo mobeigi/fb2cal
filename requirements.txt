@@ -1,5 +1,5 @@
 MechanicalSoup
-ics>=0.4
+ics>=0.6
 babel
 pytz
 httplib2
