@@ -38,7 +38,7 @@ This tool **does not** use the Facebook API.
 2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password.
 3. Install required python modules   
 `pip install -r requirements.txt`
-4. Run script manually once for testing purposes:
+4. Run the script manually:
 `python src/fb2cal.py`
 5. Import the created `birthdays.ics` file to Google Drive.  
 ### Option 2: Direct Upload to Google Calendar
