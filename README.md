@@ -32,7 +32,7 @@ This tool **does not** use the Facebook API.
 * Google Drive API access (optional)
 
 ## Instructions
-### Save ics for manual upload to Google Calendar (easier)
+### Option 1: Save ics for manual upload to Google Calendar 
 1. Clone repo
 `git clone git@github.com:mobeigi/fb2cal.git`
 2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password.
@@ -41,7 +41,7 @@ This tool **does not** use the Facebook API.
 4. Run script manually once for testing purposes:
 `python src/fb2cal.py`
 5. Import the created `birthdays.ics` file to Google Drive.  
-### Direct Upload to Google Calendar
+### Option 2: Direct Upload to Google Calendar
 1. Clone repo  
 `git clone git@github.com:mobeigi/fb2cal.git`
 2. Create a Google Drive API credentials
