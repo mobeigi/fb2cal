@@ -15,7 +15,7 @@
 </p>
 
 ## Description
-Around 20 June 2019, Facebook removed their Facebook Birthday ics export option.  
+Around 20 June 2019, Facebook removed their Facebook Birthday ICS export option.  
 This change was unannounced and no reason was ever released.  
 
 fb2cal is a tool which restores this functionality.  
@@ -32,6 +32,16 @@ This tool **does not** use the Facebook API.
 * Google Drive API access (optional)
 
 ## Instructions
+### Option 1: Save ICS file to filesystem 
+1. Clone repo
+`git clone git@github.com:mobeigi/fb2cal.git`
+2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password.
+3. Install required python modules   
+`pip install -r requirements.txt`
+4. Run the script manually:
+`python src/fb2cal.py`
+5. Import the created `birthdays.ics` file into Calendar applications (i.e. Google Calendar)
+### Option 2: Automatically Upload ICS file to Google Drive
 1. Clone repo  
 `git clone git@github.com:mobeigi/fb2cal.git`
 2. Create a Google Drive API credentials
@@ -42,14 +52,14 @@ This tool **does not** use the Facebook API.
    5. Create Credentials (**OAuth client ID**)
    5. Download credentials JSON file
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
-4. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Initially, the value for the **drive_file_id** field should be empty.
+4. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Change `upload_to_drive` to `True`. Initially, the value for the **drive_file_id** field should be empty.
 5. Install required python modules   
 `pip install -r requirements.txt`
 6. Run script manually once for testing purposes:
 `python ./fb2cal.py`
-7. Check Google Drive to ensure your ics file was made. 
-8. Setup Cron Jobs/Task Scheduler/Automator to repeatedly run the script to periodically generate an updated ics file. See **Scheduled Task Frequency** section for more info.
-9. Use the following link to import your ics into Calendar applications (i.e. Google Calendar):  
+7. Check Google Drive to ensure your ICS file was made. 
+8. Setup Cron Jobs/Task Scheduler/Automator to repeatedly run the script to periodically generate an updated ICS file. See **Scheduled Task Frequency** section for more info.
+9. Use the following link to import your ICS file into Calendar applications (i.e. Google Calendar):  
 `http://drive.google.com/uc?export=download&id=DRIVE_FILE_ID`. Replace **DRIVE_FILE_ID** with the autopopulated value found in your `config/config.ini` file.
 
 ## Configuration
