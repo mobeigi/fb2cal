@@ -471,7 +471,7 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
         The date will be in some date format which reveals the birthday day and birthday month.
         This is done for all birthdays expect those in the following week relative to the current date.
         Those will instead show day names such as 'Monday', 'Tuesday' etc for the next 7 days. """
-
+    
     birthday_date_str = tooltip_content
 
     # List of strings that will be stripped away from tooltip_content
@@ -612,7 +612,8 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
     
     try:
         # Try to parse the date using appropriate format based on locale
-        parsed_date = datetime.strptime(birthday_date_str, locale_date_format_mapping[user_locale])
+        # We are only interested in the parsed day and month here so we also pass in a leap year to cover the special case of Feb 29
+        parsed_date = datetime.strptime(f'{birthday_date_str}/1972', locale_date_format_mapping[user_locale] + "/%Y")
         return (parsed_date.day, parsed_date.month)
     except ValueError:
         # Otherwise, have to convert day names to a day and month
