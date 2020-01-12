@@ -74,7 +74,7 @@ def main():
     CONFIG_FILE_PATH = f'../config/{CONFIG_FILE_NAME}'
     CONFIG_FILE_TEMPLATE_NAME = 'config-template.ini'
     logger.info(f'Attemping to parse config file {CONFIG_FILE_NAME}...')
-    config = configparser.ConfigParser()
+    config = configparser.RawConfigParser()
     
     try:
         dataset = config.read(CONFIG_FILE_PATH, encoding='UTF-8')
