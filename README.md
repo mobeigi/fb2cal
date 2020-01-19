@@ -48,7 +48,9 @@ This tool **does not** use the Facebook API.
    1. Visit the Google Drive APIs page: https://console.developers.google.com/apis/api/drive.googleapis.com/overview
    2. Create a new project (if you don't already have one)
    3. Enable API (if not already enabled)
-   4. Create OAuth consent screen if required
+   4. Select Credentials from left pane. In the New Credentials drop-down list, select Oauth client ID.
+      If you see 'To create an OAuth client ID, you must first set a product name on the consent screen'; Configure your consent screen. The project name can be anything.
+      Choose Application type > **"Other"**. If you choose Web application it won't work. Give it whatever name you wish.
    5. Create Credentials (**OAuth client ID**)
    5. Download credentials JSON file
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
