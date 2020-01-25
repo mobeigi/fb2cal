@@ -697,7 +697,7 @@ def get_entity_id_from_vanity_name(browser, vanity_name):
     composer_query_entries = get_composer_query_entries(browser, vanity_name)
     for entry in composer_query_entries:
         # Skip other render types like commerce pages etc
-        if entry['vertical_type'] != 'USER' and entry['render_type'] not in ['friend', 'non_friend']:
+        if 'vertical_type' in entry and entry['vertical_type'] != 'USER' and 'render_type' in entry and entry['render_type'] not in ['friend', 'non_friend']:
             continue
 
         if 'alias' in entry and entry['alias'] == vanity_name:
