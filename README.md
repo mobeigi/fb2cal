@@ -48,11 +48,10 @@ This tool **does not** use the Facebook API.
    1. Visit the Google Drive APIs page: https://console.developers.google.com/apis/api/drive.googleapis.com/overview
    2. Create a new project (if you don't already have one)
    3. Enable API (if not already enabled)
-   4. Select Credentials from left pane. In the New Credentials drop-down list, select Oauth client ID.  
-      If you see 'To create an OAuth client ID, you must first set a product name on the consent screen'; Configure your consent screen. The project name can be anything.  
-      Choose Application type > **"Other"**. If you choose Web application it won't work. Give it whatever name you wish.  
-   5. Create Credentials (**OAuth client ID**)
-   5. Download credentials JSON file
+   4. Select **API & Services** > **Credentials** from left pane.
+   5. Select **Create Credentials** > **OAuth client ID**. Make sure to **Configure content screen** if you are prompted to do so. For the application type select **Other** and then enter any name you like (i.e. fb2cal)
+   6. Click **Create** to create your OAuth client ID credentials
+   7. Download credentials JSON file
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
 4. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Change `upload_to_drive` to `True`. Initially, the value for the **drive_file_id** field should be empty.
 5. Install required python modules   
