@@ -623,6 +623,11 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
         # Use beautiful soup to parse special html codes properly before matching with our dict
         day_name = BeautifulSoup(birthday_date_str, 'lxml').get_text().lower()
 
+        # Deal with Brazilian Portuguese inconsistent day names 
+        if locale == 'pt_BR':
+            if day_name != 'domingo' and day_name != 'sábado' and day_name.find('feira') == -1:
+                day_name = day_name + '-feira'
+
         if day_name in offset_dict:
             cur_date = cur_date + relativedelta(days=offset_dict[day_name])
             return (cur_date.day, cur_date.month)
