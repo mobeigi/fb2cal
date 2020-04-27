@@ -123,9 +123,7 @@ def main():
     logger.info(f'A total of {len(birthdays)} birthdays were found.')
 
     # Create birthdays ICS file
-    logger.info('Creating birthday ICS file...')
     c = populate_birthdays_calendar(birthdays)
-    logger.info('ICS file created successfully.')
     
     # Remove blank lines
     ics_str = ''.join([line.rstrip('\n') for line in c])
@@ -776,6 +774,7 @@ def strip_ajax_response_prefix(payload):
 
 def populate_birthdays_calendar(birthdays):
     """ Populate a birthdays calendar using birthday objects """
+    logger.info('Creating birthday ICS file...')
 
     c = Calendar()
     c.scale = 'GREGORIAN'
@@ -787,6 +786,7 @@ def populate_birthdays_calendar(birthdays):
 
     cur_date = datetime.now()
 
+    skipped_events = 0
     for birthday in birthdays:
         e = Event()
         e.uid = birthday.uid
@@ -797,12 +797,21 @@ def populate_birthdays_calendar(birthdays):
         year = cur_date.year if birthday.month >= cur_date.month else (cur_date + relativedelta(years=1)).year
         month = '{:02d}'.format(birthday.month)
         day = '{:02d}'.format(birthday.day)
-        e.begin = f'{year}-{month}-{day} 00:00:00'
-        e.make_all_day()
-        e.duration = timedelta(days=1)
-        e.extra.append(ContentLine(name='RRULE', value='FREQ=YEARLY'))
+        birthday_date = f'{year}-{month}-{day} 00:00:00'
+        try:
+            e.begin = birthday_date
+            e.make_all_day()
+            e.duration = timedelta(days=1)
+            e.extra.append(ContentLine(name='RRULE', value='FREQ=YEARLY'))
+            c.events.add(e)
+        except Exception as err:
+            logger.error(f'Error creating birthday calendar event for {e.name} on {birthday_date}: {err}')
+            skipped_events += 1
 
-        c.events.add(e)
+    if skipped_events != 0:
+        logger.warning(f'ICS file created, but {skipped_events} birthday(s) skipped due to errors.')
+    else:
+        logger.info('ICS file created successfully.')
 
     return c
 
