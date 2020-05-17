@@ -455,7 +455,7 @@ def parse_birthday_async_output(browser, text):
     for vanity_name, tooltip_content, name in regexp.findall(birthday_card_html):
         # Generate a unique ID in compliance with RFC 2445 ICS - 4.8.4.7 Unique Identifier
         trim_start = 15 if vanity_name.startswith('profile.php?id=') else 0
-        uid = f'{vanity_name[trim_start:]}@github/mobeigi/fb2cal'
+        uid = f'{vanity_name[trim_start:]}@github.com/mobeigi/fb2cal'
         
         # Parse tooltip content into day/month
         day, month = parse_birthday_day_month(tooltip_content, name, user_locale)
@@ -686,36 +686,6 @@ def get_day_name_offset_dict(user_locale):
     # Failure
     logger.error(f"Failed to generate day name offset dictionary for provided user locale: '{user_locale}'")
     raise SystemError
-
-def get_composer_query_entries(browser, value):
-    """ Get list of entries from the composer query endpoint """
-
-    COMPOSER_QUERY_ASYNC_ENDPOINT = "https://www.facebook.com/ajax/mercury/composer_query.php?"
-
-    # Not all fields are required for response to be given, required fields are value, fb_dtsg_ag and __a
-    query_params = {'value': value,
-                    'fb_dtsg_ag': get_async_token(browser),
-                    '__a': '1'}
-
-    response = browser.get(COMPOSER_QUERY_ASYNC_ENDPOINT + urllib.parse.urlencode(query_params))
-    
-    if response.status_code != 200:
-        logger.debug(response.text)
-        logger.warning(f'Failed to get async composer query response. Params: {query_params}. Status code: {response.status_code}.')
-        return []
-
-    # Parse json response
-    try:
-        json_response = json.loads(strip_ajax_response_prefix(response.text))
-        return json_response['payload']['entries']
-    except json.decoder.JSONDecodeError as e:
-        logger.debug(response.text)
-        logger.warning(f'JSONDecodeError: {e}')
-        return []
-    except KeyError as e:
-        logger.debug(json_response)
-        logger.warning(f'KeyError: {e}')
-        return []
 
 def strip_ajax_response_prefix(payload):
     """ Strip the prefix that Facebook puts in front of AJAX responses """

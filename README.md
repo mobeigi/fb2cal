@@ -84,6 +84,7 @@ It is recommended to run the script **once every 24 hours** to update the ICS fi
 * During Facebook authentication, a security checkpoint may trigger that will force you to change your Facebook password.
 * Some locales are currently not supported (see [#13](../../issues/13))
 * Some supported locales may fail. Consider changing your Facebook language to English temporarily as a workaround. (see [#52](../../issues/52))
+* Duplicate birthday events may appear if calendar is reimported after Facebook friends change their username due to performance optimizations. (see [#65](../../pull/65))
 
 ## Contributions
 Contributions are always welcome!
