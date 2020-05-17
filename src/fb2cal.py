@@ -41,6 +41,7 @@ from ics.grammar.parse import ContentLine
 import configparser
 import logging
 from distutils import util
+import calendar
 
 from oauth2client import file, client, tools
 from googleapiclient.discovery import build
@@ -795,6 +796,12 @@ def populate_birthdays_calendar(birthdays):
         # Calculate the year as this year or next year based on if its past current month or not
         # Also pad day, month with leading zeros to 2dp
         year = cur_date.year if birthday.month >= cur_date.month else (cur_date + relativedelta(years=1)).year
+        
+        # Feb 29 special case: 
+        # If event year is not a leap year, use Feb 28 as birthday date instead
+        if birthday.month == 2 and birthday.day == 29 and not calendar.isleap(year):
+            birthday.day = 28
+
         month = '{:02d}'.format(birthday.month)
         day = '{:02d}'.format(birthday.day)
         e.begin = f'{year}-{month}-{day} 00:00:00'
