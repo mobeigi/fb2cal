@@ -441,6 +441,7 @@ def parse_birthday_async_output(browser, text):
     # Fetch birthday card html payload from json response
     try:
         json_response = json.loads(strip_ajax_response_prefix(text))
+        logger.debug(json_response) # TODO: Remove once domops error fixed #32
         birthday_card_html = json_response['domops'][0][3]['__html']
     except json.decoder.JSONDecodeError as e:
         logger.debug(text)
