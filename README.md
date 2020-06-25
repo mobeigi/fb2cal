@@ -27,7 +27,8 @@ This tool **does not** use the Facebook API.
 
 ## Requirements
 * Facebook account
-* python3.6+ (and all required python3 modules)
+* python3.6+
+* pipenv
 * Scheduler tool to automatically run script periodically (optional)
 * Google Drive API access (optional)
 
@@ -35,11 +36,11 @@ This tool **does not** use the Facebook API.
 ### Option 1: Save ICS file to filesystem 
 1. Clone repo
 `git clone git@github.com:mobeigi/fb2cal.git`
-2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password.
+2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password (no quotes).
 3. Install required python modules   
-`pip install -r requirements.txt`
+`pipenv install`
 4. Run the script manually:
-`python src/fb2cal.py`
+`pipenv run python src/fb2cal.py`
 5. Import the created `birthdays.ics` file into Calendar applications (i.e. Google Calendar)
 ### Option 2: Automatically Upload ICS file to Google Drive
 1. Clone repo  
@@ -55,9 +56,9 @@ This tool **does not** use the Facebook API.
 3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
 4. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Change `upload_to_drive` to `True`. Initially, the value for the **drive_file_id** field should be empty.
 5. Install required python modules   
-`pip install -r requirements.txt`
-6. Run script manually once for testing purposes:
-`python ./fb2cal.py`
+`pipenv install`
+1. Run script manually once for testing purposes:
+`pipenv run python ./fb2cal.py`
 7. Check Google Drive to ensure your ICS file was made. 
 8. Setup Cron Jobs/Task Scheduler/Automator to repeatedly run the script to periodically generate an updated ICS file. See **Scheduled Task Frequency** section for more info.
 9. Use the following link to import your ICS file into Calendar applications (i.e. Google Calendar):  
