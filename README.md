@@ -27,7 +27,7 @@ This tool **does not** use the Facebook API.
 
 ## Requirements
 * Facebook account
-* python3.6+
+* Python 3.6+
 * pipenv
 * Scheduler tool to automatically run script periodically (optional)
 * Google Drive API access (optional)
