@@ -712,6 +712,7 @@ def populate_birthdays_calendar(birthdays):
     for birthday in birthdays:
         e = Event()
         e.uid = birthday.uid
+        e.created = cur_date
         e.name = f"{birthday.name}'s Birthday"
 
         # Calculate the year as this year or next year based on if its past current month or not
