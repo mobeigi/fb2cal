@@ -43,13 +43,6 @@ import logging
 from distutils import util
 import calendar
 
-from oauth2client import file, client, tools
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-from googleapiclient.errors import HttpError
-from httplib2 import Http
-from io import BytesIO
-
 # Classes
 class Birthday:
     def __init__(self, uid, name, day, month):
@@ -98,12 +91,6 @@ def main():
     
     logger.info(f'Logging level set to: {logging.getLevelName(logger.level)}')
 
-    # Authenticate with Google API early
-    if util.strtobool(config['DRIVE']['UPLOAD_TO_DRIVE']):
-        logger.info('Authenticating with Google Drive API...')
-        service = google_drive_api_authenticate()
-        logger.info('Successfully authenticated with Google Drive API.')
-
     # Init browser
     browser = mechanicalsoup.StatefulBrowser()
     init_browser(browser)
@@ -142,37 +129,6 @@ def main():
         with open(config['FILESYSTEM']['ICS_FILE_PATH'], mode='w', encoding="UTF-8") as ics_file:
             ics_file.write(ics_str)
         logger.info(f'Successfully saved ICS file to {os.path.abspath(config["FILESYSTEM"]["ICS_FILE_PATH"])}')
-
-    # Upload to drive
-    if util.strtobool(config['DRIVE']['UPLOAD_TO_DRIVE']):
-        logger.info('Uploading ICS file to Google Drive...')
-        metadata = {'name': config['DRIVE']['ICS_FILE_NAME']}
-        UPLOAD_RETRY_ATTEMPTS = 3
-        uploaded_successfully = False
-
-        for attempt in range(UPLOAD_RETRY_ATTEMPTS):
-            try:
-                updated_file = upload_and_replace_file(service, config['DRIVE']['DRIVE_FILE_ID'], metadata, bytearray(ics_str, 'utf-8')) # Pass payload as bytes
-                config.set('DRIVE', 'DRIVE_FILE_ID', updated_file['id'])
-                uploaded_successfully = True
-            except HttpError as e:
-                if e.resp.status == 404: # file not found
-                    if config['DRIVE']['DRIVE_FILE_ID']:
-                        logger.warning(f'{e}. Resetting stored file id in config and trying again. Attempt: {attempt+1}')
-                        config.set('DRIVE', 'DRIVE_FILE_ID', '') # reset stored file_id
-                        continue
-                    else:
-                        logger.error(e)
-                        raise SystemError
-                else:
-                    logger.error(e)
-                    raise SystemError
-    
-        if uploaded_successfully:
-            logger.info(f'Successfully uploaded {config["DRIVE"]["ICS_FILE_NAME"]} to Google Drive with file id: {config["DRIVE"]["DRIVE_FILE_ID"]}\nDirect download link: http://drive.google.com/uc?export=download&id={config["DRIVE"]["DRIVE_FILE_ID"]}')
-        else:
-            logger.error(f'Failed to upload {config["DRIVE"]["ICS_FILE_NAME"]} to Google Drive after {UPLOAD_RETRY_ATTEMPTS} attempts.')
-            raise SystemError
 
     # Update config file with updated file id for subsequent runs
     logger.info('Saving changes to config file...')
@@ -261,41 +217,6 @@ def facebook_authenticate(browser, email, password):
         logger.debug(login_response.text)
         logger.error(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
         raise SystemError
-
-def google_drive_api_authenticate():
-    """ Authenticate with Google Drive Api """
-
-    # Confirm credentials.json exists
-    if not os.path.isfile('credentials.json'):
-        logger.error(f'credentials.json file does not exist')
-        raise SystemExit
-
-    SCOPES = 'https://www.googleapis.com/auth/drive.file'
-    store = file.Storage('token.json')
-    creds = store.get()
-    if not creds or creds.invalid:
-        flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
-        creds = tools.run_flow(flow, store)
-    service = build('drive', 'v3', http=creds.authorize(Http()), cache_discovery=False)
-    return service
-
-def upload_and_replace_file(service, file_id, metadata, payload):
-    mine_type = 'text/calendar'
-    text_stream = BytesIO(payload) 
-    media_body = MediaIoBaseUpload(text_stream, mimetype=mine_type, chunksize=1024*1024, resumable=True)
-
-    # If file id is provided, update the file, otherwise we'll create a new file
-    if file_id:
-        updated_file = service.files().update(fileId=file_id, body=metadata, media_body=media_body).execute()
-    else:
-        updated_file = service.files().create(body=metadata, media_body=media_body).execute()
-
-        # Need publically accessible ics file so third party tools can read from it publically
-        permission = { "role": 'reader', 
-                        "type": 'anyone'}
-        service.permissions().create(fileId=updated_file['id'], body=permission).execute()
-
-    return updated_file
 
 __cached_async_token = None
 def get_async_token(browser):

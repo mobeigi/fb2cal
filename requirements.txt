@@ -2,11 +2,7 @@ MechanicalSoup
 ics>=0.6
 babel
 pytz
-httplib2
 requests
 beautifulsoup4
 lxml
 python_dateutil
-google_api_python_client
-google-auth-oauthlib
-oauth2client

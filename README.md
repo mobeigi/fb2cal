@@ -20,8 +20,7 @@ This change was unannounced and no reason was ever released.
 
 fb2cal is a tool which restores this functionality.  
 It works by calling various async endpoints that power the https://www.facebook.com/events/birthdays/ page.  
-After gathering a list of birthdays for all the users friends for a full year, it creates a ICS calendar file which is then stored on Google Drive as a publically shared file. This ICS file can then be imported into third party tools (such as Google Calendar).  
-The ICS file can also be stored on the local file system.
+After gathering a list of birthdays for all the users friends for a full year, it creates a ICS calendar file. This ICS file can then be imported into third party tools (such as Google Calendar).
 
 This tool **does not** use the Facebook API.
 
@@ -30,10 +29,8 @@ This tool **does not** use the Facebook API.
 * Python 3.6+
 * pipenv
 * Scheduler tool to automatically run script periodically (optional)
-* Google Drive API access (optional)
 
 ## Instructions
-### Option 1: Save ICS file to filesystem 
 1. Clone repo
 `git clone git@github.com:mobeigi/fb2cal.git`
 2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password (no quotes).
@@ -42,32 +39,11 @@ This tool **does not** use the Facebook API.
 4. Run the script manually:
 `pipenv run python src/fb2cal.py`
 5. Import the created `birthdays.ics` file into Calendar applications (i.e. Google Calendar)
-### Option 2: Automatically Upload ICS file to Google Drive
-1. Clone repo  
-`git clone git@github.com:mobeigi/fb2cal.git`
-2. Create a Google Drive API credentials
-   1. Visit the Google Drive APIs page: https://console.developers.google.com/apis/api/drive.googleapis.com/overview
-   2. Create a new project (if you don't already have one)
-   3. Enable API (if not already enabled)
-   4. Select **API & Services** > **Credentials** from left pane.
-   5. Select **Create Credentials** > **OAuth client ID**. Make sure to **Configure content screen** if you are prompted to do so. For the application type select **Other** and then enter any name you like (i.e. fb2cal)
-   6. Click **Create** to create your OAuth client ID credentials
-   7. Download credentials JSON file
-3. Rename credentials JSON file to **credentials.json** and put it in the `src` folder
-4. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password as well as a name for your calender to be saved on Google Drive. Change `upload_to_drive` to `True`. Initially, the value for the **drive_file_id** field should be empty.
-5. Install required python modules   
-`pipenv install`
-1. Run script manually once for testing purposes:
-`pipenv run python ./fb2cal.py`
-7. Check Google Drive to ensure your ICS file was made. 
-8. Setup Cron Jobs/Task Scheduler/Automator to repeatedly run the script to periodically generate an updated ICS file. See **Scheduled Task Frequency** section for more info.
-9. Use the following link to import your ICS file into Calendar applications (i.e. Google Calendar):  
-`http://drive.google.com/uc?export=download&id=DRIVE_FILE_ID`. Replace **DRIVE_FILE_ID** with the autopopulated value found in your `config/config.ini` file.
 
 ## Configuration
 This tool can be configured by editing the `config/config.ini` configuration file.
 
-<table> <thead> <tr style="background-color: inherit"> <th>Section</th> <th>Key</th> <th>Valid Values</th> <th>Description</th> </tr></thead> <tbody> <tr style="background-color: inherit"> <td rowspan=2>AUTH</td><td>fb_email</td><td></td><td>Your Facebook login email</td></tr><tr style="background-color: inherit"> <td>fb_password</td><td></td><td>Your Facebook login password</td></tr><tr style="background-color: inherit"> <td rowspan=3>DRIVE</td><td>upload_to_drive</td><td>True, False</td><td>If tool should automatically upload ICS file to Google Drive</td></tr><tr style="background-color: inherit"> <td>drive_file_id</td><td></td><td>The file id of file to write to on Google Drive. Leave blank to create a new file for the first time.</td></tr><tr style="background-color: inherit"> <td>ics_file_name</td><td></td><td>The name of the file to be stored/updated on Google Drive.</td></tr><tr style="background-color: inherit"> <td rowspan=2>FILESYSTEM</td><td>save_to_file</td><td>True, False</td><td>If tool should save ICS file to the local file system</td></tr><tr style="background-color: inherit"> <td>ics_file_path</td><td></td><td>Path to save ICS file to (including file name)</td></tr><tr style="background-color: inherit"> <td>LOGGING</td><td>level</td><td>DEBUG, INFO, WARNING, ERROR, CRITICAL</td><td>Logging level to use. Default: INFO</td></tr></tbody></table>
+<table> <thead> <tr> <th>Section</th> <th>Key</th> <th>Valid Values</th> <th>Description</th> </tr></thead> <tbody> <tr> <td rowspan=2>AUTH</td><td>fb_email</td><td></td><td>Your Facebook login email</td></tr><tr> <td>fb_password</td><td></td><td>Your Facebook login password</td></tr><tr> <td rowspan=2>FILESYSTEM</td><td>save_to_file</td><td>True, False</td><td>If tool should save ICS file to the local file system</td></tr><tr> <td>ics_file_path</td><td></td><td>Path to save ICS file to (including file name)</td></tr><tr> <td>LOGGING</td><td>level</td><td>DEBUG, INFO, WARNING, ERROR, CRITICAL</td><td>Logging level to use. Default: INFO</td></tr></tbody></table>
 
 ## Troubleshooting
 If you encounter any issues, please open the `config/config.ini` configuration file and set the `LOGGING` `level` to `DEBUG` (it is `INFO` by default). Include these logs when asking for help.
