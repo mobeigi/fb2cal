@@ -542,7 +542,7 @@ def parse_birthday_day_month(tooltip_content, name, user_locale):
         cur_date = datetime.now()
 
         # Use beautiful soup to parse special html codes properly before matching with our dict
-        day_name = BeautifulSoup(birthday_date_str, 'lxml').get_text().lower()
+        day_name = BeautifulSoup(birthday_date_str).get_text().lower()
 
         if day_name in offset_dict:
             cur_date = cur_date + relativedelta(days=offset_dict[day_name])
