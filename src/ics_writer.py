@@ -5,6 +5,7 @@ from ics.grammar.parse import ContentLine
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import calendar
+from logger import Logger
 
 from __init__ import __version__, __status__, __website__
 
@@ -12,6 +13,7 @@ from __init__ import __version__, __status__, __website__
 class ICSWriter:
 
     def __init__(self, birthdays):
+        self.logger = Logger('fb2cal').getLogger()
         self.birthdays = birthdays
 
     def generate(self):
@@ -54,13 +56,13 @@ class ICSWriter:
     def write(self, ics_file_path):
         # Remove blank lines
         ics_str = ''.join([line.rstrip('\n') for line in self.birthday_calendar])
-        # logger.debug(f'ics_str: {ics_str}')
+        self.logger.debug(f'ics_str: {ics_str}')
 
-        # logger.info(f'Saving ICS file to local file system...')
+        self.logger.info(f'Saving ICS file to local file system...')
 
         if not os.path.exists(os.path.dirname(ics_file_path)):
             os.makedirs(os.path.dirname(ics_file_path), exist_ok=True)
 
         with open(ics_file_path, mode='w', encoding="UTF-8") as ics_file:
             ics_file.write(ics_str)
-        #logger.info(f'Successfully saved ICS file to {os.path.abspath(ics_file_path)}')
+        self.logger.info(f'Successfully saved ICS file to {os.path.abspath(ics_file_path)}')
