@@ -2,11 +2,7 @@ import mechanicalsoup
 import re
 import requests
 import json
-from datetime import datetime
 from logger import Logger
-from utils import get_next_12_month_epoch_timestamps, strip_ajax_response_prefix
-import urllib.parse
-from transformer import Transformer
 
 class FacebookBrowser:
     def __init__(self):
@@ -14,7 +10,7 @@ class FacebookBrowser:
         self.logger = Logger('fb2cal').getLogger()
         self.browser = mechanicalsoup.StatefulBrowser()
         self.browser.set_user_agent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36')
-        self.__cached_async_token = None
+        self.__cached_token = None
         self.__cached_locale = None
 
     def authenticate(self, email, password):
@@ -76,47 +72,15 @@ class FacebookBrowser:
             self.logger.error(f'Hit Facebook security checkpoint. Please login to Facebook manually and follow prompts to authorize this device.')
             raise SystemError
 
+    def get_token(self):
+        """ Get authorization token (CSRF protection token) that must be included in all requests """
 
-    def get_async_birthdays(self):
-        """ Returns list of birthday objects by querying the Facebook birthday async page """
-        
-        FACEBOOK_BIRTHDAY_ASYNC_ENDPOINT = 'https://www.facebook.com/async/birthdays/?'
-        birthdays = []
-        next_12_months_epoch_timestamps = get_next_12_month_epoch_timestamps()
+        if self.__cached_token:
+            return self.__cached_token
 
-        transformer = Transformer()
-        user_locale = self.get_facebook_locale()
-
-        for epoch_timestamp in next_12_months_epoch_timestamps:
-            self.logger.info(f'Processing birthdays for month {datetime.fromtimestamp(epoch_timestamp).strftime("%B")}.')
-
-            # Not all fields are required for response to be given, required fields are date, fb_dtsg_ag and __a
-            query_params = {'date': epoch_timestamp,
-                            'fb_dtsg_ag': self.get_async_token(),
-                            '__a': '1'}
-            
-            response = self.browser.get(FACEBOOK_BIRTHDAY_ASYNC_ENDPOINT + urllib.parse.urlencode(query_params))
-            
-            if response.status_code != 200:
-                self.logger.debug(response.text)
-                self.logger.error(f'Failed to get async birthday response. Params: {query_params}. Status code: {response.status_code}.')
-                raise SystemError
-            
-            birthdays_for_month = transformer.parse_birthday_async_output(response.text, user_locale)
-            birthdays.extend(birthdays_for_month)
-            self.logger.info(f'Found {len(birthdays_for_month)} birthdays for month {datetime.fromtimestamp(epoch_timestamp).strftime("%B")}.')
-
-        return birthdays
-
-    def get_async_token(self):
-        """ Get async authorization token (CSRF protection token) that must be included in all async requests """
-
-        if self.__cached_async_token:
-            return self.__cached_async_token
-
-        FACEBOOK_BIRTHDAY_EVENT_PAGE_URL = 'https://www.facebook.com/events/birthdays/' # async token is present on this page
-        FACEBOOK_ASYNC_TOKEN_REGEXP_STRING = r'{\"token\":\".*?\",\"async_get_token\":\"(.*?)\"}'
-        regexp = re.compile(FACEBOOK_ASYNC_TOKEN_REGEXP_STRING, re.MULTILINE)
+        FACEBOOK_BIRTHDAY_EVENT_PAGE_URL = 'https://www.facebook.com/events/birthdays/' # token is present on this page
+        FACEBOOK_TOKEN_REGEXP_STRING = r'{\"token\":\"(.*?)\"'
+        regexp = re.compile(FACEBOOK_TOKEN_REGEXP_STRING, re.MULTILINE)
 
         birthday_event_page = self.browser.get(FACEBOOK_BIRTHDAY_EVENT_PAGE_URL)
         
@@ -132,49 +96,36 @@ class FacebookBrowser:
             self.logger.error(f'Match failed or unexpected number of regexp matches when trying to get async token.')
             raise SystemError
         
-        self.__cached_async_token = matches[1]
+        self.__cached_token = matches[1]
         
-        return self.__cached_async_token
+        return self.__cached_token
 
-    def get_facebook_locale(self):
-        """ Returns users Facebook locale """
-        
-        if self.__cached_locale:
-            return self.__cached_locale
+    def query_graph_ql_birthday_comet_root(self, offset_month):
+        """ Query the GraphQL BirthdayCometRootQuery endpoint that powers the https://www.facebook.com/events/birthdays page 
+            This endpoint will return all Birthdays for the offset_month plus the following 2 consecutive months. """
 
-        FACEBOOK_LOCALE_ENDPOINT = 'https://www.facebook.com/ajax/settings/language/account.php?'
-        FACEBOOK_LOCALE_REGEXP_STRING = r'[a-z]{2}_[A-Z]{2}'
-        regexp = re.compile(FACEBOOK_LOCALE_REGEXP_STRING, re.MULTILINE)
+        FACEBOOK_GRAPHQL_ENDPOINT = 'https://www.facebook.com/api/graphql/'
+        FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME = 'BirthdayCometRootQuery'
+        DOC_ID = 3382519521824494
 
-        # Not all fields are required for response to be given, required fields are fb_dtsg_ag and __a
-        query_params = {'fb_dtsg_ag': self.get_async_token(),
-                        '__a': '1'}
+        variables = {
+            'offset_month': offset_month,
+            'scale': 1.5
+        }
 
-        response = self.browser.get(FACEBOOK_LOCALE_ENDPOINT + urllib.parse.urlencode(query_params))
-        
+        payload = {
+            'fb_api_req_friendly_name': FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME,
+            'variables': json.dumps(variables),
+            'doc_id': DOC_ID,
+            'fb_dtsg': self.get_token(),
+            '__a': '1'
+        }
+
+        response = self.browser.post(FACEBOOK_GRAPHQL_ENDPOINT, data=payload)
+
         if response.status_code != 200:
             self.logger.debug(response.text)
-            self.logger.error(f'Failed to get Facebook locale. Params: {query_params}. Status code: {response.status_code}.')
+            self.logger.error(f'Failed to get {FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME} response. Payload: {payload}. Status code: {response.status_code}.')
             raise SystemError
-
-        # Parse json response
-        try:
-            json_response = json.loads(strip_ajax_response_prefix(response.text))
-            current_locale = json_response['jsmods']['require'][0][3][1]['currentLocale']
-        except json.decoder.JSONDecodeError as e:
-            self.logger.debug(response.text)
-            self.logger.error(f'JSONDecodeError: {e}')
-            raise SystemError
-        except KeyError as e:
-            self.logger.debug(json_response)
-            self.logger.error(f'KeyError: {e}')
-            raise SystemError
-
-        # Validate locale
-        if not regexp.match(current_locale):
-            self.logger.error(f'Invalid Facebook locale fetched: {current_locale}.')
-            raise SystemError
-
-        self.__cached_locale = current_locale
-
-        return self.__cached_locale
+        
+        return response.json()

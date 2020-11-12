@@ -12,9 +12,9 @@ from __init__ import __version__, __status__, __website__
 """ Write Birthdays to an ICS file """
 class ICSWriter:
 
-    def __init__(self, birthdays):
+    def __init__(self, facebook_users):
         self.logger = Logger('fb2cal').getLogger()
-        self.birthdays = birthdays
+        self.facebook_users = facebook_users
 
     def generate(self):
         c = Calendar()
@@ -27,23 +27,23 @@ class ICSWriter:
 
         cur_date = datetime.now()
 
-        for birthday in self.birthdays:
+        for facebook_user in self.facebook_users:
             e = Event()
-            e.uid = birthday.uid
+            e.uid = facebook_user.id
             e.created = cur_date
-            e.name = f"{birthday.name}'s Birthday"
+            e.name = f"{facebook_user.name}'s Birthday"
 
             # Calculate the year as this year or next year based on if its past current month or not
             # Also pad day, month with leading zeros to 2dp
-            year = cur_date.year if birthday.month >= cur_date.month else (cur_date + relativedelta(years=1)).year
+            year = cur_date.year if facebook_user.birthday_month >= cur_date.month else (cur_date + relativedelta(years=1)).year
             
             # Feb 29 special case: 
             # If event year is not a leap year, use Feb 28 as birthday date instead
-            if birthday.month == 2 and birthday.day == 29 and not calendar.isleap(year):
-                birthday.day = 28
+            if facebook_user.birthday_month == 2 and facebook_user.birthday_day == 29 and not calendar.isleap(year):
+                facebook_user.birthday_day = 28
 
-            month = '{:02d}'.format(birthday.month)
-            day = '{:02d}'.format(birthday.day)
+            month = '{:02d}'.format(facebook_user.birthday_month)
+            day = '{:02d}'.format(facebook_user.birthday_day)
             e.begin = f'{year}-{month}-{day} 00:00:00'
             e.make_all_day()
             e.duration = timedelta(days=1)
