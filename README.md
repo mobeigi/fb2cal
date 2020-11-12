@@ -19,10 +19,8 @@ Around 20 June 2019, Facebook removed their Facebook Birthday ICS export option.
 This change was unannounced and no reason was ever released.  
 
 fb2cal is a tool which restores this functionality.  
-It works by calling various async endpoints that power the https://www.facebook.com/events/birthdays/ page.  
+It works by calling endpoints that power the https://www.facebook.com/events/birthdays/ page.  
 After gathering a list of birthdays for all the users friends for a full year, it creates a ICS calendar file. This ICS file can then be imported into third party tools (such as Google Calendar).
-
-This tool **does not** use the Facebook API.
 
 ## Requirements
 * Facebook account
@@ -59,9 +57,6 @@ It is recommended to run the script **once every 24 hours** to update the ICS fi
 ## Caveats
 * Facebook accounts secured with 2FA are currently not supported (see [#9](../../issues/9))
 * During Facebook authentication, a security checkpoint may trigger that will force you to change your Facebook password.
-* Some locales are currently not supported (see [#13](../../issues/13))
-* Some supported locales may fail. Consider changing your Facebook language to English temporarily as a workaround. (see [#52](../../issues/52))
-* Duplicate birthday events may appear if calendar is reimported after Facebook friends change their username due to performance optimizations. (see [#65](../../pull/65))
 
 ## Contributions
 Contributions are always welcome!

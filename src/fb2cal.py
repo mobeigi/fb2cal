@@ -23,11 +23,11 @@ import sys
 import logging
 from distutils import util
 
-from birthday import Birthday
 from ics_writer import ICSWriter
 from logger import Logger
 from config import Config
 from facebook_browser import FacebookBrowser
+from transformer import Transformer
 
 if __name__ == '__main__':
     # Set CWD to script directory
@@ -62,18 +62,25 @@ if __name__ == '__main__':
         facebook_browser.authenticate(config['AUTH']['FB_EMAIL'], config['AUTH']['FB_PASS'])
         logger.info('Successfully authenticated with Facebook.')
 
-        # Get birthday objects for all friends via async endpoint
-        logger.info('Fetching all Birthdays via async endpoint...')
-        birthdays = facebook_browser.get_async_birthdays()
+        # Fetch birthdays for a full calendar year and transform them 
+        facebook_users = []
+        transformer = Transformer()
 
-        if len(birthdays) == 0:
-            logger.warning(f'Birthday list is empty. Failed to fetch any birthdays.')
+        # Endpoint will return all birthdays for offset_month plus the following 2 consecutive months.
+        logger.info('Fetching all Birthdays via BirthdayCometRootQuery endpoint...')
+        for offset_month in [1, 4, 7, 10]:
+            birthday_comet_root_json = facebook_browser.query_graph_ql_birthday_comet_root(offset_month)
+            facebook_users_for_quarter = transformer.transform_birthday_comet_root_to_birthdays(birthday_comet_root_json)
+            facebook_users.extend(facebook_users_for_quarter)
+
+        if len(facebook_users) == 0:
+            logger.warning(f'Facebook user list is empty. Failed to fetch any birthdays.')
             raise SystemError
 
-        logger.info(f'A total of {len(birthdays)} birthdays were found.')
+        logger.info(f'A total of {len(facebook_users)} birthdays were found.')
 
         # Generate ICS
-        ics_writer = ICSWriter(birthdays)
+        ics_writer = ICSWriter(facebook_users)
         logger.info('Creating birthday ICS file...')
         ics_writer.generate()
         logger.info('ICS file created successfully.')
