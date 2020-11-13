@@ -1,15 +1,11 @@
 # Config file
 config/config.ini
 
-# Sensitive credentials
-src/credentials.json
-src/token.json
-
 # Logs
 logs/
 
 # Output files
-*.ics
+out/
 
 # Github.com gitignore/Python.gitignore
 # Byte-compiled / optimized / DLL files

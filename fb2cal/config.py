@@ -1,8 +1,8 @@
 import configparser
-from logger import Logger
+from .logger import Logger
 
 CONFIG_FILE_NAME = 'config.ini'
-CONFIG_FILE_PATH = f'../config/{CONFIG_FILE_NAME}'
+CONFIG_FILE_PATH = f'config/{CONFIG_FILE_NAME}'
 CONFIG_FILE_TEMPLATE_NAME = 'config-template.ini'
 
 class Config:

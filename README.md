@@ -32,11 +32,11 @@ After gathering a list of birthdays for all the users friends for a full year, i
 1. Clone repo
 `git clone git@github.com:mobeigi/fb2cal.git`
 2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password (no quotes).
-3. Install required python modules   
+3. Set up pipenv environment
 `pipenv install`
-4. Run the script manually:
-`pipenv run python src/fb2cal.py`
-5. Import the created `birthdays.ics` file into Calendar applications (i.e. Google Calendar)
+4. Run the `fb2cal` module
+`pipenv run python -m fb2cal`
+5. Check the output folder (`out` by default) for the created `birthdays.ics` file
 
 ## Configuration
 This tool can be configured by editing the `config/config.ini` configuration file.

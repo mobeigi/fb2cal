@@ -1,7 +1,7 @@
 import os
 import logging
 
-LOGGING_FILE_PATH = '../logs/fb2cal.log'
+LOGGING_FILE_PATH = 'logs/fb2cal.log'
 
 class Logger:
     def __init__(self, name):
