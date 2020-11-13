@@ -5,9 +5,9 @@ from ics.grammar.parse import ContentLine
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import calendar
-from logger import Logger
 
-from __init__ import __version__, __status__, __website__
+from .logger import Logger
+from .__init__ import __version__, __status__, __website__
 
 """ Write Birthdays to an ICS file """
 class ICSWriter:
@@ -66,3 +66,6 @@ class ICSWriter:
         with open(ics_file_path, mode='w', encoding="UTF-8") as ics_file:
             ics_file.write(ics_str)
         self.logger.info(f'Successfully saved ICS file to {os.path.abspath(ics_file_path)}')
+
+    def get_birthday_calendar(self):
+        return self.birthday_calendar

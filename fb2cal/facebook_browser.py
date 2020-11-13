@@ -2,7 +2,8 @@ import mechanicalsoup
 import re
 import requests
 import json
-from logger import Logger
+
+from .logger import Logger
 
 class FacebookBrowser:
     def __init__(self):
