@@ -31,7 +31,10 @@ class ICSWriter:
             e = Event()
             e.uid = facebook_user.id
             e.created = cur_date
-            e.name = f"{facebook_user.name}'s Birthday"
+
+            # Don't add extra 's' if name already ends with 's'
+            formatted_username = f"{facebook_user.name}'s" if facebook_user.name[-1] != 's' else f"{facebook_user.name}'"
+            e.name = f"{formatted_username} Birthday"
 
             # Calculate the year as this year or next year based on if its past current month or not
             # Also pad day, month with leading zeros to 2dp

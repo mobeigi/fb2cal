@@ -56,6 +56,14 @@ class TestICSWriter(unittest.TestCase):
                 31,
                 12,
             ),
+            FacebookUser(
+                '100000006', 
+                'Bob Jones',
+                'https://www.facebook.com/bob.jones', 
+                'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000005_10161077510019848_299841799451806933_o.jpg',
+                24,
+                5,
+            ),
         ]
         self.ics_writer = ICSWriter(self.facebook_users)
         self.maxDiff = None
@@ -120,6 +128,14 @@ DTSTAMP:20201113T071402Z
 DURATION:P1D
 SUMMARY:Mónica Bellucci's Birthday
 UID:100000005
+END:VEVENT
+BEGIN:VEVENT
+RRULE:FREQ=YEARLY
+DTSTART;VALUE=DATE:20210524
+DTSTAMP:20201113T071402Z
+DURATION:P1D
+SUMMARY:Bob Jones' Birthday
+UID:100000006
 END:VEVENT
 METHOD:PUBLISH
 PRODID:fb2cal v1.2.0 (Production) [https://git.io/fjMwr]
