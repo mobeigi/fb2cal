@@ -29,12 +29,12 @@ After gathering a list of birthdays for all the users friends for a full year, i
 * Scheduler tool to automatically run script periodically (optional)
 
 ## Instructions
-1. Clone repo
+1. Clone repo  
 `git clone git@github.com:mobeigi/fb2cal.git`
 2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password (no quotes).
-3. Set up pipenv environment
+3. Set up pipenv environment  
 `pipenv install`
-4. Run the `fb2cal` module
+4. Run the `fb2cal` module  
 `pipenv run python -m fb2cal`
 5. Check the output folder (`out` by default) for the created `birthdays.ics` file
 
@@ -57,6 +57,14 @@ It is recommended to run the script **once every 24 hours** to update the ICS fi
 ## Caveats
 * Facebook accounts secured with 2FA are currently not supported (see [#9](../../issues/9))
 * During Facebook authentication, a security checkpoint may trigger that will force you to change your Facebook password.
+
+## Testing
+1. Set up pipenv environment  
+`pipenv install`
+2. Install the `fb2cal` module  
+`pipenv run python -m pip install .`
+3. Run the `unittests` module on the `tests` folder  
+`pipenv run python -m unittest discover tests`
 
 ## Contributions
 Contributions are always welcome!
