@@ -37,6 +37,3 @@ class TestTransformer(unittest.TestCase):
         self.assertEqual(friend.profile_picture_uri, 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/34f34864_10161077510019848_299841799681806933_o.jpg?_nc_cat=107&ccb=2&_nc_sid=7406a8&_nc_ohc=yzAYhtdvoMYAX9Zxo1e&_nc_ht=scontent-syd2-1.xx&tp=27&oh=dc48247e31223151bc5d55781a572e2f&oe=5FD254D0')
         self.assertEqual(friend.birthday_day, 17)
         self.assertEqual(friend.birthday_month, 1)
-
-if __name__ == '__main__':
-    unittest.main()
