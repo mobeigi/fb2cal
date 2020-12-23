@@ -4,7 +4,7 @@ import logging
 LOGGING_FILE_PATH = 'logs/fb2cal.log'
 
 class Logger:
-    def __init__(self, name):
+    def __init__(self):
         # Setup logger
         if not os.path.exists(os.path.dirname(LOGGING_FILE_PATH)):
             os.makedirs(os.path.dirname(LOGGING_FILE_PATH), exist_ok=True)
@@ -16,7 +16,7 @@ class Logger:
                     logging.FileHandler(LOGGING_FILE_PATH, encoding='UTF-8')]
         )
     
-        self.logger = logging.getLogger(name)
+        self.logger = logging.getLogger(__name__)
 
     def getLogger(self):
         return self.logger
