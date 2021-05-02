@@ -62,8 +62,12 @@ class FacebookBrowser:
             raise SystemError
 
         # Check to see if login failed
-        if login_response.soup.find('link', {'rel': 'canonical', 'href': 'https://www.facebook.com/login/'}):
+        # We do this by checking to see if the `c_user` cookie is set to the users numeric Facebook ID
+        c_user = self.browser.get_cookiejar().get('c_user', default=None)
+
+        if not c_user or not c_user.isnumeric():
             self.logger.debug(login_response.text)
+            self.logger.debug(f'Cookie(c_user) : {c_user}')
             self.logger.error(f'Failed to authenticate with Facebook with email {email}. Please check provided email/password.')
             raise SystemError
 

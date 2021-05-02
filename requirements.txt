@@ -1,3 +1,4 @@
 MechanicalSoup
 ics>=0.6
 requests
+freezegun

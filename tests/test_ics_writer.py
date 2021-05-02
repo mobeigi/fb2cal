@@ -1,7 +1,6 @@
 import unittest
-from unittest.mock import patch
-from datetime import datetime, date
-from ics import Calendar, Event
+from ics import Calendar
+from freezegun import freeze_time
 
 from fb2cal import ICSWriter, FacebookUser
 
@@ -68,12 +67,8 @@ class TestICSWriter(unittest.TestCase):
         self.ics_writer = ICSWriter(self.facebook_users)
         self.maxDiff = None
 
+    @freeze_time("2020-12-01")
     def test_ics_writer_equivalence(self):
-        
-        with patch('datetime.date') as mock_date:
-            mock_date.now.return_value = date(2010, 10, 8)
-            print(datetime.now())
-
         self.ics_writer.generate()
         actual_calendar = self.ics_writer.get_birthday_calendar()
         expected = """BEGIN:VCALENDAR
