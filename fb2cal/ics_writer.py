@@ -35,12 +35,13 @@ class ICSWriter:
             # Don't add extra 's' if name already ends with 's'
             formatted_username = f"{facebook_user.name}'s" if facebook_user.name[-1] != 's' else f"{facebook_user.name}'"
             e.name = f"{formatted_username} Birthday"
+            e.description = facebook_user.profile_url
 
             # Calculate the year as this year or next year based on if its past current month or not
             # Also pad day, month with leading zeros to 2dp
             year = cur_date.year if facebook_user.birthday_month >= cur_date.month else (cur_date + relativedelta(years=1)).year
-            
-            # Feb 29 special case: 
+
+            # Feb 29 special case:
             # If event year is not a leap year, use Feb 28 as birthday date instead
             if facebook_user.birthday_month == 2 and facebook_user.birthday_day == 29 and not calendar.isleap(year):
                 facebook_user.birthday_day = 28
