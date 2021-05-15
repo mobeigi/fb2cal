@@ -1,5 +1,4 @@
 import os
-import ics
 from ics import Calendar, Event
 from ics.grammar.parse import ContentLine
 from datetime import datetime, timedelta
@@ -7,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 import calendar
 
 from .logger import Logger
+from .utils import generate_facebook_profile_url_permalink
 from .__init__ import __version__, __status__, __website__
 
 """ Write Birthdays to an ICS file """
@@ -31,11 +31,11 @@ class ICSWriter:
             e = Event()
             e.uid = facebook_user.id
             e.created = cur_date
+            e.description = f'{facebook_user.name}\n{generate_facebook_profile_url_permalink(facebook_user)}'
 
             # Don't add extra 's' if name already ends with 's'
             formatted_username = f"{facebook_user.name}'s" if facebook_user.name[-1] != 's' else f"{facebook_user.name}'"
-            e.name = f"{formatted_username} Birthday"
-            e.description = facebook_user.profile_url
+            e.name = f'{formatted_username} Birthday'
 
             # Calculate the year as this year or next year based on if its past current month or not
             # Also pad day, month with leading zeros to 2dp
