@@ -62,18 +62,19 @@ try:
     logger.info('Successfully authenticated with Facebook.')
 
     # Fetch birthdays for a full calendar year and transform them 
-    facebook_users = []
+    facebook_users = set()
     transformer = Transformer()
 
     # Endpoint will return all birthdays for offset_month plus the following 2 consecutive months.
     logger.info('Fetching all Birthdays via BirthdayCometRootQuery endpoint...')
-    for offset_month in [1, 4, 7, 10]:
+    # TODO: See #97, offset_month of 10 is needed here because offset months 6/7 are currently returning equivalent months
+    for offset_month in [0, 3, 6, 9, 10]:
         birthday_comet_root_json = facebook_browser.query_graph_ql_birthday_comet_root(offset_month)
         facebook_users_for_quarter = transformer.transform_birthday_comet_root_to_birthdays(birthday_comet_root_json)
-        facebook_users.extend(facebook_users_for_quarter)
+        facebook_users.update(facebook_users_for_quarter)
 
     if len(facebook_users) == 0:
-        logger.warning(f'Facebook user list is empty. Failed to fetch any birthdays.')
+        logger.warning(f'Facebook user set is empty. Failed to fetch any birthdays.')
         raise SystemError
 
     logger.info(f'A total of {len(facebook_users)} birthdays were found.')

@@ -12,3 +12,13 @@ class FacebookUser:
     
     def __unicode__(self):
         return u'{self.name} ({self.birthday_day}/{self.birthday_month})'
+
+    def __lt__(self, other):
+        return (self.birthday_month < other.birthday_month) and (self.birthday_day < other.birthday_month)
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
+    
