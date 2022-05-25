@@ -14,6 +14,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000001_10161077510019848_299841799451806933_o.jpg',
                 20,
                 1,
+                1994
             ),
             FacebookUser(
                 '100000001', 
@@ -22,6 +23,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000002_10161077510019848_299841799451806933_o.jpg',
                 12,
                 3,
+                1974
             ),
             FacebookUser(
                 '100000002', 
@@ -30,6 +32,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000002_10161077510019848_299841799451806933_o.jpg',
                 6,
                 6,
+                2001
             ),
             FacebookUser(
                 '100000003', 
@@ -38,6 +41,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000003_10161077510019848_299841799451806933_o.jpg',
                 26,
                 10,
+                1987
             ),
             FacebookUser(
                 '100000004', 
@@ -46,6 +50,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000004_10161077510019848_299841799451806933_o.jpg',
                 29,
                 2,
+                2004
             ),
             FacebookUser(
                 '100000005', 
@@ -54,6 +59,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000005_10161077510019848_299841799451806933_o.jpg',
                 31,
                 12,
+                None
             ),
             FacebookUser(
                 '100000006', 
@@ -62,6 +68,7 @@ class TestICSWriter(unittest.TestCase):
                 'https://scontent-syd2-1.xx.fbcdn.net/v/t1.0-1/cp0/p60x60/00000005_10161077510019848_299841799451806933_o.jpg',
                 24,
                 5,
+                None
             ),
         ]
         self.ics_writer = ICSWriter(self.facebook_users)
@@ -78,45 +85,45 @@ X-ORIGINAL-URL:/events/birthdays/
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 RRULE:FREQ=YEARLY
-DTSTART;VALUE=DATE:20210120
+DTSTART;VALUE=DATE:19940120
 DTSTAMP:20201113T071402Z
-DESCRIPTION:John Smith\\nhttps://www.facebook.com/100000000
+DESCRIPTION:John Smith (20/01/1994)\\nhttps://www.facebook.com/100000000
 DURATION:P1D
 SUMMARY:John Smith's Birthday
 UID:100000000
 END:VEVENT
 BEGIN:VEVENT
 RRULE:FREQ=YEARLY
-DTSTART;VALUE=DATE:20210312
+DTSTART;VALUE=DATE:19740312
 DTSTAMP:20201113T071402Z
-DESCRIPTION:Laura Daisy\\nhttps://www.facebook.com/100000001
+DESCRIPTION:Laura Daisy (12/03/1974)\\nhttps://www.facebook.com/100000001
 DURATION:P1D
 SUMMARY:Laura Daisy's Birthday
 UID:100000001
 END:VEVENT
 BEGIN:VEVENT
 RRULE:FREQ=YEARLY
-DTSTART;VALUE=DATE:20210606
+DTSTART;VALUE=DATE:20010606
 DTSTAMP:20201113T071402Z
-DESCRIPTION:韩忠清\\nhttps://www.facebook.com/100000002
+DESCRIPTION:韩忠清 (06/06/2001)\\nhttps://www.facebook.com/100000002
 DURATION:P1D
 SUMMARY:韩忠清's Birthday
 UID:100000002
 END:VEVENT
 BEGIN:VEVENT
 RRULE:FREQ=YEARLY
-DTSTART;VALUE=DATE:20211026
+DTSTART;VALUE=DATE:19871026
 DTSTAMP:20201113T071402Z
-DESCRIPTION:حكيم هديّة\\nhttps://www.facebook.com/100000003
+DESCRIPTION:حكيم هديّة (26/10/1987)\\nhttps://www.facebook.com/100000003
 DURATION:P1D
 SUMMARY:حكيم هديّة's Birthday
 UID:100000003
 END:VEVENT
 BEGIN:VEVENT
 RRULE:FREQ=YEARLY
-DTSTART;VALUE=DATE:20210228
+DTSTART;VALUE=DATE:20040229
 DTSTAMP:20201113T071402Z
-DESCRIPTION:Leap Year\\nhttps://www.facebook.com/100000004
+DESCRIPTION:Leap Year (29/02/2004)\\nhttps://www.facebook.com/100000004
 DURATION:P1D
 SUMMARY:Leap Year's Birthday
 UID:100000004
@@ -125,7 +132,7 @@ BEGIN:VEVENT
 RRULE:FREQ=YEARLY
 DTSTART;VALUE=DATE:20201231
 DTSTAMP:20201113T071402Z
-DESCRIPTION:Mónica Bellucci\\nhttps://www.facebook.com/100000005
+DESCRIPTION:Mónica Bellucci (31/12/????)\\nhttps://www.facebook.com/100000005
 DURATION:P1D
 SUMMARY:Mónica Bellucci's Birthday
 UID:100000005
@@ -134,7 +141,7 @@ BEGIN:VEVENT
 RRULE:FREQ=YEARLY
 DTSTART;VALUE=DATE:20210524
 DTSTAMP:20201113T071402Z
-DESCRIPTION:Bob Jones\\nhttps://www.facebook.com/100000006
+DESCRIPTION:Bob Jones (24/05/????)\\nhttps://www.facebook.com/100000006
 DURATION:P1D
 SUMMARY:Bob Jones' Birthday
 UID:100000006

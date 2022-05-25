@@ -1956,7 +1956,8 @@ BIRTHDAY_COMET_ROOT_JANUARY_MOCK = {
                                  },
                                  "birthdate":{
                                     "day":1,
-                                    "month":11
+                                    "month":11,
+                                    "year":1982
                                  },
                                  "__module_operation_BirthdayCometMonthlyBirthdaysCard_allFriendsByBirthdayMonthEdge":{
                                     "__dr":"BirthdayCometProfilePictureOnUser_user$normalization.graphql"
@@ -2019,7 +2020,8 @@ BIRTHDAY_COMET_ROOT_JANUARY_MOCK = {
                                  },
                                  "birthdate":{
                                     "day":25,
-                                    "month":12
+                                    "month":12,
+                                    "year":None
                                  },
                                  "__module_operation_BirthdayCometMonthlyBirthdaysCard_allFriendsByBirthdayMonthEdge":{
                                     "__dr":"BirthdayCometProfilePictureOnUser_user$normalization.graphql"
@@ -2082,7 +2084,8 @@ BIRTHDAY_COMET_ROOT_JANUARY_MOCK = {
                                  },
                                  "birthdate":{
                                     "day":17,
-                                    "month":1
+                                    "month":1,
+                                    "year":1881
                                  },
                                  "__module_operation_BirthdayCometMonthlyBirthdaysCard_allFriendsByBirthdayMonthEdge":{
                                     "__dr":"BirthdayCometProfilePictureOnUser_user$normalization.graphql"
