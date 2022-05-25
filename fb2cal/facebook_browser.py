@@ -105,13 +105,13 @@ class FacebookBrowser:
         
         return self.__cached_token
 
-    def query_graph_ql_birthday_comet_root(self, offset_month):
-        """ Query the GraphQL BirthdayCometRootQuery endpoint that powers the https://www.facebook.com/events/birthdays page 
+    def query_graph_ql_birthday_comet_monthly(self, offset_month):
+        """ Query the GraphQL BirthdayCometMonthlyBirthdaysRefetchQuery endpoint that powers the https://www.facebook.com/events/birthdays page 
             This endpoint will return all Birthdays for the offset_month plus the following 2 consecutive months. """
 
         FACEBOOK_GRAPHQL_ENDPOINT = 'https://www.facebook.com/api/graphql/'
-        FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME = 'BirthdayCometRootQuery'
-        DOC_ID = 3382519521824494
+        FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME = 'BirthdayCometMonthlyBirthdaysRefetchQuery'
+        DOC_ID = 5347559575302259
 
         variables = {
             'offset_month': offset_month,

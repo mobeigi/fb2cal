@@ -69,8 +69,8 @@ try:
     logger.info('Fetching all Birthdays via BirthdayCometRootQuery endpoint...')
     # TODO: See #97, offset_month of 10 is needed here because offset months 6/7 are currently returning equivalent months
     for offset_month in [0, 3, 6, 9, 10]:
-        birthday_comet_root_json = facebook_browser.query_graph_ql_birthday_comet_root(offset_month)
-        facebook_users_for_quarter = transformer.transform_birthday_comet_root_to_birthdays(birthday_comet_root_json)
+        birthday_comet_monthly_json = facebook_browser.query_graph_ql_birthday_comet_monthly(offset_month)
+        facebook_users_for_quarter = transformer.transform_birthday_comet_monthly_to_birthdays(birthday_comet_monthly_json)
         facebook_users.update(facebook_users_for_quarter)
 
     if len(facebook_users) == 0:

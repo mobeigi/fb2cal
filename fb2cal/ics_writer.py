@@ -28,26 +28,36 @@ class ICSWriter:
         cur_date = datetime.now()
 
         for facebook_user in self.facebook_users:
-            e = Event()
-            e.uid = facebook_user.id
-            e.created = cur_date
-            e.description = f'{facebook_user.name}\n{generate_facebook_profile_url_permalink(facebook_user)}'
-
             # Don't add extra 's' if name already ends with 's'
             formatted_username = f"{facebook_user.name}'s" if facebook_user.name[-1] != 's' else f"{facebook_user.name}'"
-            e.name = f'{formatted_username} Birthday'
+            formatted_username = f'{formatted_username} Birthday'
 
-            # Calculate the year as this year or next year based on if its past current month or not
-            # Also pad day, month with leading zeros to 2dp
-            year = cur_date.year if facebook_user.birthday_month >= cur_date.month else (cur_date + relativedelta(years=1)).year
+            # Set date components
+            day = facebook_user.birthday_day
+            month = facebook_user.birthday_month
+            year = facebook_user.birthday_year
 
             # Feb 29 special case:
             # If event year is not a leap year, use Feb 28 as birthday date instead
             if facebook_user.birthday_month == 2 and facebook_user.birthday_day == 29 and not calendar.isleap(year):
-                facebook_user.birthday_day = 28
+                day = 28
 
-            month = '{:02d}'.format(facebook_user.birthday_month)
-            day = '{:02d}'.format(facebook_user.birthday_day)
+            # The birth year may not be visible due to privacy settings
+            # In this case, calculate the year as this year or next year based on if its past current month or not
+            if year is None:
+                year = cur_date.year if facebook_user.birthday_month >= cur_date.month else (cur_date + relativedelta(years=1)).year
+
+            # Format date components as needed
+            month = f'{month:02}'
+            day = f'{day:02}'
+
+            # Event meta data
+            e = Event()
+
+            e.uid = facebook_user.id
+            e.name = formatted_username
+            e.created = cur_date
+            e.description = f'{facebook_user}\n{generate_facebook_profile_url_permalink(facebook_user)}'
             e.begin = f'{year}-{month}-{day} 00:00:00'
             e.make_all_day()
             e.duration = timedelta(days=1)
