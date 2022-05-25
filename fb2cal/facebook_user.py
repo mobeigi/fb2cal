@@ -14,7 +14,7 @@ class FacebookUser:
     def __str__(self):
         day = f'{self.birthday_day:02}' if self.birthday_day else UNKNOWN_CHAR*2
         month = f'{self.birthday_month:02}' if self.birthday_month else UNKNOWN_CHAR*2
-        year = str(self.birthday_year) if self.birthday_year else UNKNOWN_CHAR*4
+        year = f'{self.birthday_year:04}' if self.birthday_year else UNKNOWN_CHAR*4
         formatted_birthday = DATE_SEPERATOR.join(filter(None, (day, month, year)))
         return f'{self.name} ({formatted_birthday})'
 
