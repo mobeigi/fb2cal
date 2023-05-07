@@ -9,7 +9,7 @@
 
 <p align="center">
 <a href="../../releases"><img src="https://img.shields.io/github/release/mobeigi/fb2cal.svg?style=flat-square" /></a>
-<a href="../../actions"><img src="https://img.shields.io/github/workflow/status/mobeigi/fb2cal/Test%20fb2cal?style=flat-square" /></a>
+<a href="../../actions"><img src="https://img.shields.io/github/actions/workflow/status/mobeigi/fb2cal/test-fb2cal.yml?style=flat-square" /></a>
 <a href="../../issues"><img src="https://img.shields.io/github/issues/mobeigi/fb2cal.svg?style=flat-square" /></a>
 <a href="../../pulls"><img src="https://img.shields.io/github/issues-pr/mobeigi/fb2cal.svg?style=flat-square" /></a> 
 <a href="LICENSE.md"><img src="https://img.shields.io/github/license/mobeigi/fb2cal.svg?style=flat-square" /></a>
