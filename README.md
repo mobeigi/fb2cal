@@ -33,15 +33,32 @@ After gathering a list of birthdays for all the users friends for a full year, i
 * pipenv
 * Scheduler tool to automatically run script periodically (optional)
 
+## PyPi Project
+https://pypi.org/project/fb2cal/
+
 ## Instructions
+
+### PyPi (Recommended)
+1. In an empty folder of your choice, set up pipenv environment  
+`pipenv install`
+2. Install `fb2cal` module:  
+`pipenv run pip install fb2cal`
+3. Download [config/config-template.ini](https://raw.githubusercontent.com/mobeigi/fb2cal/master/config/config-template.ini) file and store it in `config/config.ini`.
+4. Update the `config/config.ini` file and enter your Facebook email and password (no quotes).
+5. Run the `fb2cal` module  
+`pipenv run python -m fb2cal`
+6. Check the output folder (`out` by default) for the created `birthdays.ics` file
+
+### Local
 1. Clone repo  
 `git clone git@github.com:mobeigi/fb2cal.git`
-2. Rename `config/config-template.ini` to `config/config.ini` and enter your Facebook email and password (no quotes).
-3. Set up pipenv environment  
+2. Copy `config/config-template.ini` to `config/config.ini`.
+3. Update the `config/config.ini` file and enter your Facebook email and password (no quotes).
+4. Set up pipenv environment  
 `pipenv install`
-4. Run the `fb2cal` module  
+5. Run the `fb2cal` module  
 `pipenv run python -m fb2cal`
-5. Check the output folder (`out` by default) for the created `birthdays.ics` file
+6. Check the output folder (`out` by default) for the created `birthdays.ics` file
 
 ## Configuration
 This tool can be configured by editing the `config/config.ini` configuration file.
