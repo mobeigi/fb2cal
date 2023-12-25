@@ -1,0 +1,10 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "fb2cal"
+
+[packages]
+mechanicalsoup = "*"
+ics = ">=0.6"
+requests = "*"
+freezegun = "*"
