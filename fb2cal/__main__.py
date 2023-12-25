@@ -27,14 +27,14 @@ from .config import Config
 from .facebook_browser import FacebookBrowser
 from .transformer import Transformer
 
-from .__init__ import __version__, __status__, __website__, __license__
+from .__init__ import __version__, __status__, __github_short_url__, __license__
 
 # Set CWD to script directory
 os.chdir(sys.path[0])
 
 # Init logger
 logger = Logger('fb2cal').getLogger()
-logger.info(f'Starting fb2cal v{__version__} ({__status__}) [{__website__}]')
+logger.info(f'Starting fb2cal v{__version__} ({__status__}) [{__github_short_url__}]')
 logger.info(f'This project is released under the {__license__} license.')
 
 try:

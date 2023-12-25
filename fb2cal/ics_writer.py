@@ -7,7 +7,7 @@ import calendar
 
 from .logger import Logger
 from .utils import generate_facebook_profile_url_permalink
-from .__init__ import __version__, __status__, __website__
+from .__init__ import __version__, __status__, __github_short_url__
 
 """ Write Birthdays to an ICS file """
 class ICSWriter:
@@ -20,7 +20,7 @@ class ICSWriter:
         c = Calendar()
         c.scale = 'GREGORIAN'
         c.method = 'PUBLISH'
-        c.creator = f'fb2cal v{__version__} ({__status__}) [{__website__}]'
+        c.creator = f'fb2cal v{__version__} ({__status__}) [{__github_short_url__}]'
         c.extra.append(ContentLine(name='X-WR-CALNAME', value='Facebook Birthdays (fb2cal)'))
         c.extra.append(ContentLine(name='X-PUBLISHED-TTL', value='PT12H'))
         c.extra.append(ContentLine(name='X-ORIGINAL-URL', value='/events/birthdays/'))
