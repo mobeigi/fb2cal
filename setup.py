@@ -12,7 +12,7 @@ setup(
     url=__website__,
     download_url=__download_url__,
     keywords=__keywords__,
-    python_requires='>3.9.0',
+    python_requires='>3.9',
     install_requires=[
         'MechanicalSoup',
         'ics>=0.6',
