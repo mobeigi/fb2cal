@@ -29,7 +29,7 @@ After gathering a list of birthdays for all the users friends for a full year, i
 
 ## Requirements
 * Facebook account
-* Python 3.6+
+* Python 3.9+
 * pipenv
 * Scheduler tool to automatically run script periodically (optional)
 
