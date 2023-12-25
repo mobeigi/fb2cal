@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from fb2cal.__meta__ import __title__, __version__, __description__, __license__, __author__, __email__, __min_python_version__, __website__, __download_url__, __keywords__
+from fb2cal.__meta__ import __title__, __version__, __description__, __license__, __author__, __email__, __website__, __download_url__, __keywords__
 
 setup(
     name=__title__,

@@ -2,7 +2,8 @@ import unittest
 from ics import Calendar
 from freezegun import freeze_time
 
-from fb2cal import ICSWriter, FacebookUser
+from fb2cal.ics_writer import ICSWriter
+from fb2cal.facebook_user import FacebookUser
 
 class TestICSWriter(unittest.TestCase):
     def setUp(self):
