@@ -4,6 +4,7 @@ import requests
 import json
 
 from .logger import Logger
+from .utils import remove_anti_hijacking_protection
 
 class FacebookBrowser:
     def __init__(self):
@@ -84,7 +85,7 @@ class FacebookBrowser:
             return self.__cached_token
 
         FACEBOOK_BIRTHDAY_EVENT_PAGE_URL = 'https://www.facebook.com/events/birthdays/' # token is present on this page
-        FACEBOOK_TOKEN_REGEXP_STRING = r'{\"token\":\"(.*?)\"'
+        FACEBOOK_TOKEN_REGEXP_STRING = r'\[\"DTSGInitialData\",\[],{\"token\":\"(.*?)\"'
         regexp = re.compile(FACEBOOK_TOKEN_REGEXP_STRING, re.MULTILINE)
 
         birthday_event_page = self.browser.get(FACEBOOK_BIRTHDAY_EVENT_PAGE_URL)
@@ -128,9 +129,19 @@ class FacebookBrowser:
 
         response = self.browser.post(FACEBOOK_GRAPHQL_ENDPOINT, data=payload)
 
+        # Sanity failsafe, GraphQL relay endpoint will always return 200
         if response.status_code != 200:
             self.logger.debug(response.text)
             self.logger.error(f'Failed to get {FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME} response. Payload: {payload}. Status code: {response.status_code}.')
             raise SystemError
         
-        return response.json()
+        trimmed_response = remove_anti_hijacking_protection(response.text)
+        response_json = json.loads(trimmed_response)
+
+        # Validate for errors
+        if 'error' in response_json:
+            self.logger.debug(response.text)
+            self.logger.error(f'Failed to parse {FACEBOOK_GRAPHQL_API_REQ_FRIENDLY_NAME} response. Payload: {payload}. Error: {response_json["errorSummary"]} - {response_json["errorDescription"]}')
+            raise SystemError
+
+        return response_json
