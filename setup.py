@@ -9,5 +9,6 @@ setup(
     license=__license__,
     author=__author__,
     author_email=__email__,
-    url=__website__
+    url=__website__,
+    python_requires='>3.9.0',
 )
