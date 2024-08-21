@@ -47,7 +47,7 @@ class FacebookBrowser:
     def authenticate(self, email, password):
         """ Authenticate with Facebook setting up session for further requests """
         
-        FACEBOOK_LOGIN_URL = 'http://www.facebook.com/login'
+        FACEBOOK_LOGIN_URL = 'https://www.facebook.com/login'
 
         login_page = self.browser.open(FACEBOOK_LOGIN_URL)
 
