@@ -36,6 +36,8 @@ setup(
         'ics>=0.6',
         'requests',
         'freezegun',
+        'pycryptodomex',
+        'PyNaCl',
     ],
     long_description=read('README.md', __github_url__, __github_assets_absolute_url__),
     long_description_content_type='text/markdown',
