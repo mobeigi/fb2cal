@@ -7,7 +7,7 @@ __license__ = "GPLv3"
 __maintainer__ = 'Mo Beigi'
 __status__ = 'Production'
 __title__ = 'fb2cal'
-__version_info__ = (1, 3, 0)
+__version_info__ = (1, 3, 1)
 __version__ = '.'.join(map(str, __version_info__))
 
 __github_url__ = 'https://github.com/mobeigi/fb2cal'
