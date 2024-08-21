@@ -43,7 +43,7 @@ https://pypi.org/project/fb2cal/
 `pipenv install`
 2. Install `fb2cal` module:  
 `pipenv run pip install fb2cal`
-3. Download [config/config-template.ini](https://raw.githubusercontent.com/mobeigi/fb2cal/master/config/config-template.ini) file and store it in `config/config.ini`.
+3. Download [config/config-template.ini](https://raw.githubusercontent.com/mobeigi/fb2cal/main/config/config-template.ini) file and store it in `config/config.ini`.
 4. Update the `config/config.ini` file and enter your Facebook email and password (no quotes).
 5. Run the `fb2cal` module  
 `pipenv run python -m fb2cal`

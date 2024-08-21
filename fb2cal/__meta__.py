@@ -12,7 +12,7 @@ __version__ = '.'.join(map(str, __version_info__))
 
 __github_url__ = 'https://github.com/mobeigi/fb2cal'
 __github_short_url__ = 'https://git.io/fjMwr'
-__github_assets_absolute_url__ = 'https://raw.githubusercontent.com/mobeigi/fb2cal/master'
+__github_assets_absolute_url__ = 'https://raw.githubusercontent.com/mobeigi/fb2cal/main'
 __download_url__= f'https://github.com/mobeigi/fb2cal/archive/v{__version__}.tar.gz'
 
 
