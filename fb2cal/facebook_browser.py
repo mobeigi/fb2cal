@@ -4,6 +4,7 @@ import requests
 import json
 from bs4 import Tag
 
+from .__init__ import __version__
 from .logger import Logger
 from .utils import remove_anti_hijacking_protection, facebook_web_encrypt_password
 
@@ -12,7 +13,7 @@ class FacebookBrowser:
         """ Initialize browser as needed """
         self.logger = Logger('fb2cal').getLogger()
         self.browser = mechanicalsoup.StatefulBrowser()
-        self.browser.set_user_agent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36')
+        self.browser.set_user_agent('FB2CAL/{__version__}') # Custom user agent to bypass bot detection / 2FA trigger
         self.__cached_token = None
 
     def _get_datr_token_from_html(self, html):
@@ -67,6 +68,10 @@ class FacebookBrowser:
 
         # Prepare to send form
         login_form = self.browser.select_form("form#login_form")
+        if login_form is None:
+            self.logger.error("Could not find login form.")
+            raise SystemError
+        
         login_form.set("email", email)
 
         # Encrypt password into enc_pass
