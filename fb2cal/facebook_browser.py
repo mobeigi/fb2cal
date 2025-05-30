@@ -4,7 +4,7 @@ import requests
 import json
 from bs4 import Tag
 
-from .__init__ import __version__
+from .__init__ import __title__, __version__
 from .logger import Logger
 from .utils import remove_anti_hijacking_protection, facebook_web_encrypt_password
 
@@ -13,7 +13,7 @@ class FacebookBrowser:
         """ Initialize browser as needed """
         self.logger = Logger('fb2cal').getLogger()
         self.browser = mechanicalsoup.StatefulBrowser()
-        self.browser.set_user_agent('FB2CAL/{__version__}') # Custom user agent to bypass bot detection / 2FA trigger
+        self.browser.set_user_agent('{__title__}/{__version__}') # Custom user agent to bypass bot detection / 2FA trigger
         self.__cached_token = None
 
     def _get_datr_token_from_html(self, html):
