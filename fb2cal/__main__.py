@@ -19,13 +19,13 @@
 import os
 import sys
 import logging
-from distutils import util
 
 from .ics_writer import ICSWriter
 from .logger import Logger
 from .config import Config
 from .facebook_browser import FacebookBrowser
 from .transformer import Transformer
+from .utils import strtobool
 
 from .__init__ import __version__, __status__, __github_short_url__, __license__
 
@@ -85,7 +85,7 @@ try:
     logger.info('ICS file created successfully.')
 
     # Save to file system
-    if util.strtobool(config['FILESYSTEM']['SAVE_TO_FILE']):
+    if strtobool(config['FILESYSTEM']['SAVE_TO_FILE']):
         ics_writer.write(config['FILESYSTEM']['ICS_FILE_PATH'])
 
     logger.info('Done! Terminating gracefully.')
