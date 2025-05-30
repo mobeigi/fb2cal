@@ -48,3 +48,13 @@ def facebook_web_encrypt_password(key_id, pub_key, password, version=5):
     encrypted = base64.b64encode(encrypted).decode('utf-8')
 
     return f'#PWD_BROWSER:{version}:{time}:{encrypted}'
+
+# Convert string to boolean based on if its truthy or falsy
+def strtobool(val):
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"invalid truth value {val!r}")
